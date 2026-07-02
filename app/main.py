@@ -1,10 +1,12 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from app.core.config import get_settings
 from app.core.logger import get_logger
 from contextlib import asynccontextmanager
 from app.core.response import success_response
 from app.core.exception_handler import http_exception_handler
 from app.db import models
+from app.db.session import get_db
+from app.repository.user_repository import UserRepository
 
 # GET Settings Object
 settings = get_settings()
@@ -34,6 +36,9 @@ app.add_exception_handler(HTTPException, http_exception_handler)
 
 # Health API
 @app.get("/health")
-def health_check():
+def health_check(db=Depends(get_db)):
+    user_repo = UserRepository(db)
+
+    user_repo.create({"name": "Vraj"})
 
     return success_response(msg="Server is Healthy!")

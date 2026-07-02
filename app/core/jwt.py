@@ -3,7 +3,8 @@ from jose.exceptions import ExpiredSignatureError, JWTError
 from datetime import datetime, timezone, timedelta
 from app.core.config import get_settings
 from fastapi import HTTPException, status as http_status
-from app.core.message import ErrorMessage, SuccessMessage
+from app.core.message import ErrorMessage
+from app.core.constants import JWT_ACCESS_TOKEN_EXPIRY_TIME
 
 # Setting object
 settings = get_settings()
@@ -16,7 +17,9 @@ JWT_REFRESH_TOKEN_EXPIRY = settings.JWT_REFRESH_TOKEN_EXPIRY
 
 
 # Function: Generate Token
-def generate_token(payload: dict, expiry_time_in_min: int = 10):
+def generate_token(
+    payload: dict, expiry_time_in_min: int = JWT_ACCESS_TOKEN_EXPIRY_TIME
+):
 
     # Update Payload with Expiry Time
     payload.update(

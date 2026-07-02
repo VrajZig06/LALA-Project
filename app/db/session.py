@@ -15,3 +15,12 @@ Session = sessionmaker(
     bind=engine,
     autoflush=False,
 )
+
+
+# Function: Get DB Object
+def get_db():
+    db = Session()
+    try:
+        yield db
+    finally:
+        db.close()
