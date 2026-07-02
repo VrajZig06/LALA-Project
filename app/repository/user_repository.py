@@ -1,16 +1,17 @@
-from app.repository.base_repository import BaseRepository
-from app.db.models.user import User
-from sqlalchemy.orm import Session
+# from app.repository.base_repository import BaseRepository
+
+# from app.db.models.user import User
+# from sqlalchemy.orm import Session
 
 
-class UserRepository(BaseRepository[User]):
-    def __init__(self, db: Session):
-        """
-        Initialize user repository.
+# class UserRepository(BaseRepository[User]):
+#     def __init__(self, db: Session):
+#         """
+#         Initialize user repository.
 
-        Args:
-            db: Database session
-        """
-        super().__init__(User, db)
+#         Args:
+#             db: Database session
+#         """
+#         super().__init__(User, db)
 
-    pass
+#     pass
