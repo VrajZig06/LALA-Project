@@ -144,7 +144,7 @@ class EmailService:
         </body>
         </html>
         """
-        return await self.send_email(to_email, subject, html_content)   
+        return await self.send_email(to_email, subject, html_content)
 
 
 # Singleton instance
