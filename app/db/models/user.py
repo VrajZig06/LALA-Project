@@ -1,9 +1,8 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import Boolean
-from sqlalchemy.engine import default
-from sqlalchemy import String
+from sqlalchemy import Boolean, Integer, String, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.models.base import IdMixins, TimeMixins
+
 
 
 class User(IdMixins, TimeMixins):
@@ -14,6 +13,8 @@ class User(IdMixins, TimeMixins):
     email: Mapped[str] = mapped_column(String, nullable=False)
     password: Mapped[str] = mapped_column(String, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)
+    otp: Mapped[int] = mapped_column(Integer, nullable = True, default = None)
+    otp_expiry: Mapped[int] = mapped_column(BigInteger, nullable = True, default = None)
 
     # Relationships 
     user_sessions: Mapped["UserSession"] = relationship("UserSession", back_populates = "user") # One to One
