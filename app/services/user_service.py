@@ -61,9 +61,11 @@ class UserService:
 
             # Add New fields otp_expiry and otp
             user_data.update({
-                "otp_expiry": get_unix_time + (5 * 60 * 1000),
+                "otp_expiry": get_unix_time() + (5 * 60 * 1000),
                 "otp": generate_otp()
             })
+
+            await send_email_verification_email(email, full_name, user_data.get("otp"), user_data.get("otp_expiry"))
 
             # Find Roles 
             role_detail = self.role_repo.get_by_field(

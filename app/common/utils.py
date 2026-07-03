@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 from random import randint
 from app.services.email_service import email_service
@@ -20,11 +21,12 @@ def generate_otp() -> int:
     return int("".join([str(randint(a=1, b=9)) for i in range(4)]))
 
 # Function: Send Email Varification OTP 
-async def send_email_verification_email(email: EmailStr, full_name: str) -> None:
+async def send_email_verification_email(email: EmailStr, full_name: str, otp: Optional[int] = None, otp_expiry: Optional[int] = None) -> None:
     # Send Email for OTP Verification
-    otp_expiry = get_unix_time() + (5 * 60 * 1000) # Add 5 Min to current time
 
-    otp = generate_otp()
+    if otp is None or otp_expiry is None:
+        otp_expiry = get_unix_time() + (5 * 60 * 1000) # Add 5 Min to current time
+        otp = generate_otp()
 
     await email_service.send_otp_email(
         to_email=email,
