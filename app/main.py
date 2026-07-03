@@ -8,6 +8,7 @@ from app.core.exception_handler import http_exception_handler, server_exception_
 from app.db import models
 from app.core.message import SuccessMessage
 from app.api.routes import app_router
+from app.core.jwt import generate_token, verify_token
 
 # GET Settings Object
 settings = get_settings()
@@ -42,4 +43,5 @@ app.include_router(app_router, prefix="/api/v1")
 # Health API
 @app.get("/health")
 async def health_check():
+    print(f"generate_token :: {generate_token({"user_id" : "123", "email": "user@gmail.com"}, expiry_time_in_min=1)}")
     return success_response(msg=SuccessMessage.SERVER_HEALTHY)

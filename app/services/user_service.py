@@ -26,4 +26,4 @@ class UserService:
         except HTTPException as e:
             raise
         except Exception as e:
-            raise ServerException(f"{e} \n {e}")
+            raise ServerException(e)

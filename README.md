@@ -95,6 +95,16 @@ Migrations are stored in [app/db/versions/](file:///Users/ztlab141/Desktop/LALA%
 
 ---
 
+## 🌱 Database Seeding
+
+To populate the database with default roles (`admin`, `manager`, `employee`, and `employe`):
+
+```bash
+python -m app.db.seeds
+```
+
+---
+
 ## 🏃 Running the Application
 
 To start the FastAPI development server:
