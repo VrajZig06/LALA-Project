@@ -61,8 +61,8 @@ class UserService:
 
             # Add New fields otp_expiry and otp
             user_data.update({
-                "otp_expiry": otp_expiry,
-                "otp": otp
+                "otp_expiry": get_unix_time + (5 * 60 * 1000),
+                "otp": generate_otp()
             })
 
             # Find Roles 
