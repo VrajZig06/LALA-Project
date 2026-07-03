@@ -1,9 +1,9 @@
 from app.core.config import get_settings
 from app.core.logger import get_logger
-import sib_api_v3_sdk
+from datetime import datetime
 from sib_api_v3_sdk.rest import ApiException
 import asyncio
-from datetime import datetime
+import sib_api_v3_sdk
 
 # Logger Setup
 logger = get_logger(__name__)

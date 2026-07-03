@@ -6,6 +6,7 @@ from app.core.response import success_response
 from app.core.exception_handler import http_exception_handler
 from app.db import models
 from app.core.message import SuccessMessage
+from app.api.routes import app_router
 
 # GET Settings Object
 settings = get_settings()
@@ -31,6 +32,9 @@ app = FastAPI(lifespan=lifespan)
 
 # Handle Exception
 app.add_exception_handler(HTTPException, http_exception_handler)
+
+# Add App Routes
+app.include_router(app_router, prefix="/api/v1")
 
 
 # Health API

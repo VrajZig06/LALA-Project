@@ -20,7 +20,6 @@ JWT_REFRESH_TOKEN_EXPIRY = settings.JWT_REFRESH_TOKEN_EXPIRY
 def generate_token(
     payload: dict, expiry_time_in_min: int = JWT_ACCESS_TOKEN_EXPIRY_TIME
 ):
-
     # Update Payload with Expiry Time
     payload.update(
         {
