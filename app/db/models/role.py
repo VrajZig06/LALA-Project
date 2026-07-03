@@ -10,3 +10,6 @@ class Role(IdMixins, TimeMixins):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates = "role")
+
+    def __str__(self):
+        return self.role_name

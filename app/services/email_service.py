@@ -2,8 +2,9 @@ from app.core.config import get_settings
 from app.core.logger import get_logger
 from datetime import datetime
 from sib_api_v3_sdk.rest import ApiException
-import asyncio
 import sib_api_v3_sdk
+import asyncio
+
 
 # Logger Setup
 logger = get_logger(__name__)
@@ -145,6 +146,84 @@ class EmailService:
         </html>
         """
         return await self.send_email(to_email, subject, html_content)
+
+    async def send_otp_email(self, to_email: str, otp: int, name: str = None, expiry_minutes: int = 5) -> bool:
+        """
+        Send OTP verification email to the user with a premium design
+        """
+        subject = f"{otp} is your verification code"
+        app_name = settings.APP_NAME or "LALA"
+        display_name = name or self._strip_email_name(to_email)
+        year = datetime.now().year
+        
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; width: 100% !important;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 520px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+          <!-- Top Gradient Bar -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 32px 40px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">{app_name}</h1>
+            </td>
+          </tr>
+          <!-- Content Body -->
+          <tr>
+            <td style="padding: 40px 40px 30px 40px;">
+              <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 20px; font-weight: 700; text-align: center;">Verify Your Email Address</h2>
+              <p style="margin: 0 0 24px 0; color: #475569; font-size: 15px; line-height: 24px;">
+                Hi {display_name},<br><br>
+                Thank you for choosing <strong>{app_name}</strong>. To complete your verification, please use the 4-digit verification code (OTP) below.
+              </p>
+              
+              <!-- OTP Box -->
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f1f5f9; border-radius: 12px; margin-bottom: 24px; border: 1px dashed #cbd5e1;">
+                <tr>
+                  <td align="center" style="padding: 24px;">
+                    <div style="font-size: 38px; font-weight: 800; letter-spacing: 12px; color: #4f46e5; font-family: 'Courier New', Courier, monospace; text-shadow: 1px 1px 0px #ffffff; padding-left: 12px;">{otp}</div>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="margin: 0 0 24px 0; color: #64748b; font-size: 13px; line-height: 20px; text-align: center;">
+                This verification code is valid for <strong>{expiry_minutes} minutes</strong>.<br>
+                For security reasons, do not share this code with anyone.
+              </p>
+              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+              <p style="margin: 0; color: #94a3b8; font-size: 12px; line-height: 18px; text-align: center;">
+                If you did not request this code, please ignore this email or contact support if you suspect unauthorized access.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #f1f5f9;">
+              <p style="margin: 0 0 8px 0; color: #64748b; font-size: 12px; font-weight: 600;">{self.sender_name}</p>
+              <p style="margin: 0; color: #94a3b8; font-size: 11px;">© {year} {self.sender_name}. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+        return await self.send_email(to_email, subject, html_content)
+
+    def _strip_email_name(self, email: str) -> str:
+        """Helper to extract a name from email if name is not provided"""
+        try:
+            return email.split("@")[0].capitalize()
+        except Exception:
+            return "User"
 
 
 # Singleton instance

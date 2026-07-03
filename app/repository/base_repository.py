@@ -72,7 +72,7 @@ class BaseRepository(Generic[ModelType]):
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model, field):
-                    query = query.filter(getattr(self.model, field) == value)
+                    query = query.filter(getattr(self.model, field) == value, self.model.is_active == True, self.model.is_deleted == False)
 
         return query.offset(skip).limit(limit).all()
 
@@ -86,6 +86,7 @@ class BaseRepository(Generic[ModelType]):
 
         self.db.add(db_obj)
         self.db.commit()
+        self.refresh(db_obj)
         return db_obj
 
     def update(self, db_obj: ModelType, obj_in: Dict[str, Any]) -> ModelType:

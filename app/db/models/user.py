@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Boolean, Integer, String, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.models.base import IdMixins, TimeMixins
-
+from pydantic import ConfigDict
 
 
 class User(IdMixins, TimeMixins):
@@ -24,3 +24,5 @@ class User(IdMixins, TimeMixins):
     user_sessions: Mapped["UserSession"] = relationship("UserSession", back_populates = "user") # One to One
     user_info: Mapped["UserInformation"] = relationship("UserInformation", back_populates = "user") # One to One
     role: Mapped["Role"] = relationship("Role", back_populates = "user") # One to One
+
+    

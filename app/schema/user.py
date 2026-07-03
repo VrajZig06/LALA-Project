@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 from app.core.hash import password_hash
 
 class UserRegistration(BaseModel):
@@ -13,3 +13,11 @@ class UserRegistration(BaseModel):
         return password_hash(v)
 
     
+class UserRegistrationResponse(BaseModel):
+    first_name: str 
+    last_name: str
+    email: str
+    is_verified: bool
+    role_id: str
+
+    model_config = ConfigDict(from_attributes = True)

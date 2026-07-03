@@ -9,10 +9,8 @@ from app.schema.user import UserRegistration
 router = APIRouter(prefix="/users")
 
 
-@router.get("/")
-def get_users(payload:UserRegistration, request: Request, db: Session = Depends(get_db)):
-
-    print(f"payload :: {payload}")
+@router.post("/signup")
+async def get_users(payload: UserRegistration, request: Request, db: Session = Depends(get_db)):
     user_service = UserService(request, db)
-    return user_service.register_user()
+    return await user_service.register_user(payload)
     
