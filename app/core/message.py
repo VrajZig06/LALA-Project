@@ -13,6 +13,7 @@ class ErrorMessage:
     INVALID_TOKEN = "Token Invalid"
     INTERNAL_SERVER_ERROR = "Internal Server Error"
     UNAUTHORIZED_ACCESS = "You are not Authorize to Access!"
+    INVALID_CREDENTIALS = "Invalid Credentials"
 
 class LoggerMessage:
     ExpiredSignatureError_Logtext = "user_id :: {user_id} & error :: {e}"
