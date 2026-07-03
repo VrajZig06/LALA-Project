@@ -53,17 +53,18 @@ def verify_token(token: str):
 
     except ExpiredSignatureError as e:
         logger.error(
-            LoggerMessage.ExpiredSignatureErrorText
+            LoggerMessage.ExpiredSignatureError_Logtext
             .format(user_id = user_id, e = e)
-            )
+            ,exc_info=True)
         raise HTTPException(
             status_code=http_status.HTTP_401_UNAUTHORIZED,
             detail=ErrorMessage.TOKEN_EXPIRE,
         )
     except JWTError as e:
         logger.error(
-            LoggerMessage.ExpiredSignatureErrorText
+            LoggerMessage.ExpiredSignatureError_Logtext
             .format(user_id = user_id, e = e)
+            ,exc_info=True
             )
         raise HTTPException(
             status_code=http_status.HTTP_401_UNAUTHORIZED,

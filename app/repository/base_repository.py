@@ -34,7 +34,7 @@ class BaseRepository(Generic[ModelType]):
         Returns:
             The model instance or None if not found
         """
-        return self.db.query(self.model).filter(self.model.id == id).first()
+        return self.db.query(self.model).filter(self.model.id == id, self.model.is_active == True, self.model.is_deleted == False).first()
 
     def get_by_field(self, field_name: str, value: Any) -> Optional[ModelType]:
         """

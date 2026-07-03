@@ -9,10 +9,7 @@ router = APIRouter(prefix="/users")
 
 
 @router.get("/")
-def get_users(request: Request,current_user = Depends(current_user), db: Session = Depends(get_db)):
-
-    print(f"current_user :: {current_user}")
-
+def get_users(request: Request, current_user = Depends(current_user), db: Session = Depends(get_db)):
     user_service = UserService(request, db)
     return user_service.register_user()
     
