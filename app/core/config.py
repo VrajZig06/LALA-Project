@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRY: int
     JWT_REFRESH_TOKEN_EXPIRY: int
 
+    # Brevo
+    BREVO_API_KEY: str
+    BREVO_SENDER_EMAIL: str
+    BREVO_SENDER_NAME: str
+
     model_config = {
         "env_file": f".env.{ServerEnv().ENV}",
         "extra": "ignore",

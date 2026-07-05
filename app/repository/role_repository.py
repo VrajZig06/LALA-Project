@@ -1,10 +1,9 @@
 from app.repository.base_repository import BaseRepository
-
-from app.db.models.user import User
+from app.db.models.role import Role
 from sqlalchemy.orm import Session
 
 
-class UserRepository(BaseRepository[User]):
+class RoleRepository(BaseRepository[Role]):
     def __init__(self, db: Session):
         """
         Initialize user repository.
@@ -12,6 +11,6 @@ class UserRepository(BaseRepository[User]):
         Args:
             db: Database session
         """
-        super().__init__(User, db)
+        super().__init__(Role, db)
 
     pass
