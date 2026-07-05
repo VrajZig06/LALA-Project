@@ -3,3 +3,8 @@ alembic
 .env
 .env.*
 alembic.ini
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
