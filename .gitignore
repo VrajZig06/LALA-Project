@@ -10,27 +10,9 @@ alembic.ini
 # Environment variables
 .env
 .env.*
-!.env.example
+alembic.ini
 
-# Python bytecode & cache
+# Python cache files
 __pycache__/
-*.pyc
 *.py[cod]
 *$py.class
-.ruff_cache/
-
-# Editors & IDEs
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.swp
-
-# OS files
-.DS_Store
-Thumbs.db
-
-__pycache__/
-*.pyc
