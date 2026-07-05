@@ -1,9 +1,11 @@
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
-from sqlalchemy import Boolean, Integer, String, BigInteger
-from sqlalchemy.orm import Mapped, mapped_column
-from app.db.models.base import IdMixins, TimeMixins
 from pydantic import ConfigDict
+from sqlalchemy import BigInteger, Boolean
+from sqlalchemy import Enum as SEnum
+from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.core.enums import LoginType
+from app.db.models.base import IdMixins, TimeMixins
 
 
 class User(IdMixins, TimeMixins):
@@ -12,10 +14,13 @@ class User(IdMixins, TimeMixins):
     first_name: Mapped[str] = mapped_column(String, nullable=True, default=None)
     last_name: Mapped[str] = mapped_column(String, nullable=True, default=None)
     email: Mapped[str] = mapped_column(String, nullable=False)
-    password: Mapped[str] = mapped_column(String, nullable=False)
+    password: Mapped[str] = mapped_column(String, nullable=True, default=None)
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)
     otp: Mapped[int] = mapped_column(Integer, nullable = True, default = None)
     otp_expiry: Mapped[int] = mapped_column(BigInteger, nullable = True, default = None)
+    login_type: Mapped[str] = mapped_column(SEnum(LoginType), nullable=True,
+        default=LoginType.EMAIL.value)
+    social_id: Mapped[str] = mapped_column(String, nullable=True, default=None)
 
     # Foreign Keys
     role_id: Mapped[str] = mapped_column(ForeignKey("roles.id"), nullable = False)
