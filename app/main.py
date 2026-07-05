@@ -1,12 +1,15 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
+from app.core.exception import ServerException
 from app.core.config import get_settings
 from app.core.logger import get_logger
 from contextlib import asynccontextmanager
 from app.core.response import success_response
-from app.core.exception_handler import http_exception_handler
+from app.core.exception_handler import http_exception_handler, server_exception_handler
 from app.db import models
-from app.db.session import get_db
-from app.repository.user_repository import UserRepository
+from app.core.message import SuccessMessage
+from app.api.routes import app_router
+from app.core.jwt import generate_token, verify_token
+from app.common.utils import generate_otp
 
 # GET Settings Object
 settings = get_settings()
@@ -32,13 +35,15 @@ app = FastAPI(lifespan=lifespan)
 
 # Handle Exception
 app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(ServerException, server_exception_handler)
+
+# Add App Routes
+app.include_router(app_router, prefix="/api/v1")
 
 
 # Health API
 @app.get("/health")
-def health_check(db=Depends(get_db)):
-    user_repo = UserRepository(db)
-
-    user_repo.create({"name": "Vraj"})
-
-    return success_response(msg="Server is Healthy!")
+async def health_check():
+    print(f"generate_otp :: {generate_otp()}")
+    print(f"generate_token :: {generate_token({"user_id" : "123", "email": "user@gmail.com"}, expiry_time_in_min=1)}")
+    return success_response(msg=SuccessMessage.SERVER_HEALTHY)
