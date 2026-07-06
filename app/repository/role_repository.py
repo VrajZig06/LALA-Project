@@ -1,6 +1,7 @@
-from app.repository.base_repository import BaseRepository
-from app.db.models.role import Role
 from sqlalchemy.orm import Session
+
+from app.db.models.role import Role
+from app.repository.base_repository import BaseRepository
 
 
 class RoleRepository(BaseRepository[Role]):

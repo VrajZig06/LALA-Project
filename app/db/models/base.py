@@ -1,8 +1,10 @@
-from app.db.base import Base
-from sqlalchemy.orm import mapped_column, Mapped
-from sqlalchemy import String, BigInteger, Boolean
-from app.common.utils import get_unix_time
 import uuid
+
+from sqlalchemy import BigInteger, Boolean, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.common.utils import get_unix_time
+from app.db.base import Base
 
 
 class IdMixins(Base):

@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+from pydantic_settings import BaseSettings
 
 
 # Select Environment
@@ -40,6 +41,6 @@ class Settings(BaseSettings):
 
 
 # Function: Get ENV Variables
-@lru_cache()
+@lru_cache
 def get_settings():
     return Settings()

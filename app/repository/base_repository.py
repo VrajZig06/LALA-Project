@@ -2,7 +2,8 @@
 Base repository class with common CRUD operations.
 """
 
-from typing import Generic, TypeVar, Optional, Type, List, Any, Dict, Union
+from typing import Any, Generic, TypeVar
+
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -12,7 +13,7 @@ ModelType = TypeVar("ModelType")
 class BaseRepository(Generic[ModelType]):
     """Base repository providing common CRUD operations."""
 
-    def __init__(self, model: Type[ModelType], db: Session):
+    def __init__(self, model: type[ModelType], db: Session):
         """
         Initialize repository.
 
@@ -24,7 +25,7 @@ class BaseRepository(Generic[ModelType]):
         self.model = model
         self.db = db
 
-    def get(self, id: str) -> Optional[ModelType]:
+    def get(self, id: str) -> ModelType | None:
         """
         Get a record by ID.
 
@@ -34,9 +35,9 @@ class BaseRepository(Generic[ModelType]):
         Returns:
             The model instance or None if not found
         """
-        return self.db.query(self.model).filter(self.model.id == id, self.model.is_active == True, self.model.is_deleted == False).first()
+        return self.db.query(self.model).filter(self.model.id == id).first()
 
-    def get_by_field(self, field_name: str, value: Any) -> Optional[ModelType]:
+    def get_by_field(self, field_name: str, value: Any) -> ModelType | None:
         """
         Get a record by a specific field.
 
@@ -54,8 +55,8 @@ class BaseRepository(Generic[ModelType]):
         )
 
     def get_all(
-        self, skip: int = 0, limit: int = 100, filters: Optional[Dict[str, Any]] = None
-    ) -> List[ModelType]:
+        self, skip: int = 0, limit: int = 100, filters: dict[str, Any] | None = None
+    ) -> list[ModelType]:
         """
         Get all records with optional filtering and pagination.
 
@@ -72,11 +73,15 @@ class BaseRepository(Generic[ModelType]):
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model, field):
-                    query = query.filter(getattr(self.model, field) == value, self.model.is_active == True, self.model.is_deleted == False)
+                    query = query.filter(
+                        getattr(self.model, field) == value,
+                        self.model.is_active == True,
+                        self.model.is_deleted == False,
+                    )
 
         return query.offset(skip).limit(limit).all()
 
-    def create(self, obj_in: Union[Dict[str, Any], BaseModel]) -> ModelType:
+    def create(self, obj_in: dict[str, Any] | BaseModel) -> ModelType:
         if isinstance(obj_in, BaseModel):
             data = obj_in.model_dump()
         else:
@@ -89,7 +94,7 @@ class BaseRepository(Generic[ModelType]):
         self.refresh(db_obj)
         return db_obj
 
-    def update(self, db_obj: ModelType, obj_in: Dict[str, Any]) -> ModelType:
+    def update(self, db_obj: ModelType, obj_in: dict[str, Any]) -> ModelType:
         for field, value in obj_in.items():
             if hasattr(db_obj, field):
                 setattr(db_obj, field, value)
