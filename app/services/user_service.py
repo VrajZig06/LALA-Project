@@ -1,6 +1,13 @@
-from app.schema.user import ResetPassword
+from app.schema.user import ResetPassword, UserGoogleAuth
 from fastapi import HTTPException, Request
 from fastapi import status as http_status
+
+import base64
+import json
+import httpx
+from jose import jwt
+from app.core.config import get_settings
+from app.core.enums import LoginType
 
 from app.common.utils import generate_otp, get_unix_time, send_email_verification_email
 from app.core.constants import DEFAULT_ROLE_NAME
@@ -12,6 +19,7 @@ from app.core.response import success_response
 from app.db.models.user import User
 from app.db.session import Session
 from app.repository.role_repository import RoleRepository
+
 from app.repository.user_repository import UserRepository
 from app.core.hash import check_password, password_hash
 from app.schema.user import UserOtpVerify, UserRegistration, UserRegistrationResponse, UserOtpVerifyResponse, UserLogin, UserInfo, UserLoginResponse
@@ -262,3 +270,109 @@ class UserService:
             status_code= http_status.HTTP_200_OK,
             msg=SuccessMessage.PASSWORD_RESET_SUCCESSFULLY,
         )
+
+    async def google_auth(self, payload: UserGoogleAuth):
+        try:
+            token = payload.token
+            settings = get_settings()
+
+            # Retrieve Google public JWKS and verify the JWT signature properly
+            async with httpx.AsyncClient() as client:
+                response = await client.get("https://www.googleapis.com/oauth2/v3/certs")
+                jwks = response.json()
+            idinfo = jwt.decode(
+                token,
+                jwks,
+                algorithms=["RS256"],
+                audience=settings.GOOGLE_CLIENT_ID,
+                issuer="https://accounts.google.com"
+            )
+
+
+            email = idinfo.get("email")
+            first_name = idinfo.get("given_name", "")
+            last_name = idinfo.get("family_name", "")
+            social_id = idinfo.get("sub")
+
+            if not email:
+                raise HTTPException(
+                    status_code=http_status.HTTP_400_BAD_REQUEST,
+                    detail="Email not provided in Google token"
+                )
+
+            # Check if user already exists
+            user = self.user_repo.get_by_field("email", email)
+
+            if user:
+                # User exists
+                if user.is_deleted:
+                    raise HTTPException(
+                        status_code=http_status.HTTP_400_BAD_REQUEST,
+                        detail="User account is deleted"
+                    )
+                # Update user details if not matching Google profile
+                updated = False
+                if not user.social_id:
+                    user.social_id = social_id
+                    updated = True
+                if user.login_type != LoginType.GOOGLE.value:
+                    user.login_type = LoginType.GOOGLE.value
+                    updated = True
+                if not user.is_verified:
+                    user.is_verified = True
+                    user.is_active = True
+                    updated = True
+                if updated:
+                    self.db.commit()
+                    self.db.refresh(user)
+            else:
+                # Create a new user
+                role_detail = self.role_repo.get_by_field("role_name", DEFAULT_ROLE_NAME)
+                if not role_detail:
+                    raise HTTPException(
+                        status_code=http_status.HTTP_400_BAD_REQUEST,
+                        detail=ErrorMessage.ROLE_NOT_FOUND
+                    )
+
+                user_data = {
+                    "email": email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "social_id": social_id,
+                    "login_type": LoginType.GOOGLE.value,
+                    "is_verified": True,
+                    "is_active": True,
+                    "role_id": role_detail.id
+                }
+                user = User(**user_data)
+                self.db.add(user)
+                self.db.commit()
+                self.db.refresh(user)
+
+            # Generate Access and Refresh Tokens
+            token_payload = {
+                "id": user.id,
+                "role_id": user.role_id,
+                "email": user.email
+            }
+            access_token = generate_token(token_payload, JWT_ACCESS_TOKEN_EXPIRY_TIME)
+            refresh_token = generate_token(token_payload, JWT_REFRESH_TOKEN_EXPIRY_TIME)
+
+            user_info = UserInfo.model_validate(user)
+
+            response_data = UserLoginResponse(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                user=user_info
+            )
+
+            return success_response(
+                status_code=http_status.HTTP_200_OK,
+                msg=SuccessMessage.USER_LOGIN_SUCCESSFULLY,
+                data=response_data
+            )
+        except Exception as e:
+            if isinstance(e, HTTPException):
+                raise
+            raise ServerException(e)
+

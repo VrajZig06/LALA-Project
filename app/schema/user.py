@@ -69,3 +69,9 @@ class ResetPassword(BaseModel):
 class UserForgotRequest(BaseModel):
     email: EmailStr
 
+
+# API: Google Auth
+class UserGoogleAuth(BaseModel):
+    token: str
+
+

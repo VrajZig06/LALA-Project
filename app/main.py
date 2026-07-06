@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 
 from app.api.routes import app_router
 from app.common.utils import generate_otp
@@ -11,6 +12,7 @@ from app.core.jwt import generate_token
 from app.core.logger import get_logger
 from app.core.message import SuccessMessage
 from app.core.response import success_response
+
 
 # GET Settings Object
 settings = get_settings()
@@ -50,3 +52,15 @@ async def health_check():
         f"generate_token :: {generate_token({'user_id': '123', 'email': 'user@gmail.com'}, expiry_time_in_min=1)}"
     )
     return success_response(msg=SuccessMessage.SERVER_HEALTHY)
+
+
+# Serve Google Signup/Login Page
+@app.get("/", response_class=HTMLResponse)
+async def serve_login_page():
+    try:
+        with open("static/google_signup.html", "r") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Frontend file not found")
+
