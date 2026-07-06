@@ -1,8 +1,10 @@
+from app.schema.user import ResetPassword
 from fastapi import HTTPException, Request
 from fastapi import status as http_status
 
 from app.common.utils import generate_otp, get_unix_time, send_email_verification_email
 from app.core.constants import DEFAULT_ROLE_NAME
+from app.core.jwt import generate_token
 from app.core.exception import ServerException
 from app.core.logger import get_logger
 from app.core.message import ErrorMessage, SuccessMessage
@@ -11,7 +13,9 @@ from app.db.models.user import User
 from app.db.session import Session
 from app.repository.role_repository import RoleRepository
 from app.repository.user_repository import UserRepository
-from app.schema.user import UserOtpVerify, UserRegistration, UserRegistrationResponse, UserOtpVerifyResponse
+from app.core.hash import check_password, password_hash
+from app.schema.user import UserOtpVerify, UserRegistration, UserRegistrationResponse, UserOtpVerifyResponse, UserLogin, UserInfo, UserLoginResponse
+from app.core.constants import JWT_ACCESS_TOKEN_EXPIRY_TIME, JWT_REFRESH_TOKEN_EXPIRY_TIME
 
 logger = get_logger(__name__)
 
@@ -158,3 +162,103 @@ class UserService:
             raise
         except Exception as e:
             raise ServerException(e)
+
+    async def user_login(self, payload: UserLogin):
+        # Extract user email and password
+        email = payload.email
+        password = payload.password
+
+        # Check User with email
+        user = self.user_repo.get_by_field("email", email)
+
+        # If User not Found
+        if not user or user.is_deleted:
+            raise HTTPException(
+                status_code = http_status.HTTP_404_NOT_FOUND,
+                detail = ErrorMessage.USER_NOT_FOUND
+            )
+
+        # if user is Inactive or not is_verified
+        if not user.is_active or not user.is_verified:
+            raise HTTPException(
+                status_code = http_status.HTTP_400_BAD_REQUEST,
+                detail = ErrorMessage.USER_EMAIL_VERIFICATION_PENDING
+            )
+
+        # Check Password
+        is_password_match = check_password(password, user.password)
+
+        if not is_password_match:
+            raise HTTPException(
+                status_code = http_status.HTTP_401_UNAUTHORIZED,
+                detail = ErrorMessage.INCORRECT_PASSWORD
+            )
+        
+        # Prepare Token payload
+        payload = {
+            "id" : user.id,
+            "role_id" : user.role_id,
+            "email": user.email
+        }
+
+        # Generate Tokens
+        access_token = generate_token(payload, JWT_ACCESS_TOKEN_EXPIRY_TIME)
+        refresh_token = generate_token(payload, JWT_REFRESH_TOKEN_EXPIRY_TIME)
+
+        # Prepared UserInfo Data
+        user = UserInfo.model_validate(user).model_dump()
+
+        response_data = UserLoginResponse(
+            access_token = access_token,
+            refresh_token = refresh_token,
+            user=user
+        )
+
+        return success_response(
+            status_code=http_status.HTTP_200_OK,
+            msg=SuccessMessage.USER_LOGIN_SUCCESSFULLY,
+            data=response_data
+        )
+
+    async def reset_password(self, payload: ResetPassword, current_user):
+
+        user_id = current_user.get("id")
+
+        user = self.user_repo.get(user_id)
+
+        # If user not found then raise User Not Found
+        if not user or user.is_deleted or not user.is_verified:
+            raise HTTPException(
+                status_code = http_status.HTTP_404_NOT_FOUND,
+                detail = ErrorMessage.USER_NOT_FOUND
+            )
+
+        # If Both same then Raise Error
+        if payload.old_password == payload.new_password:
+            raise HTTPException(
+                status_code = http_status.HTTP_400_BAD_REQUEST,
+                detail = ErrorMessage.OLD_PASSWORD_MUST_BE_DIFFERNT
+            )
+
+        is_password_correct = check_password(payload.old_password, user.password)
+
+        # Password doesn't matched
+        if not is_password_correct:
+            raise HTTPException(
+                status_code = http_status.HTTP_401_UNAUTHORIZED,
+                detail = ErrorMessage.INCORRECT_OLD_PASSWORD
+            )
+
+        # If all done then convert new password to hash 
+        new_password_hash = password_hash(payload.new_password)
+
+        # Set to user
+        user.password = new_password_hash
+
+        self.db.commit()
+        self.db.refresh(user)
+
+        return success_response(
+            status_code= http_status.HTTP_200_OK,
+            msg=SuccessMessage.PASSWORD_RESET_SUCCESSFULLY,
+        )
