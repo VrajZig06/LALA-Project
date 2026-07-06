@@ -10,6 +10,8 @@ class SuccessMessage:
     USER_VERIFICATION_EMAIL_SEND = "User Verification Email Sent"
     USER_NOT_FOUND = "User Not Found!"
     USER_OTP_VERIFIED_SUCCESSFULLY = "User Verified Successfully!"
+    USER_LOGIN_SUCCESSFULLY = "User Login Successfully"
+    PASSWORD_RESET_SUCCESSFULLY = "User Password Reset Successfully"
 
 
 class ErrorMessage:
@@ -23,6 +25,10 @@ class ErrorMessage:
     USER_NOT_FOUND = "User Not Found!"
     OTP_EXPIRED = "OTP Expired!"
     OTP_INVALID = "OTP Invalid"
+    USER_EMAIL_VERIFICATION_PENDING = "User Email Verification is Pending!"
+    INCORRECT_PASSWORD = "Incorrect Password"
+    OLD_PASSWORD_MUST_BE_DIFFERNT = "Old Password must be different then New Password"
+    INCORRECT_OLD_PASSWORD = "Incorrect Old Password"
 
 
 class LoggerMessage:

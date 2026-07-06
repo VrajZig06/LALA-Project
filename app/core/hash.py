@@ -11,10 +11,9 @@ def password_hash(plain_text: str) -> str:
 
 # Function: Take Plain text and Hash text and check
 def check_password(plain_text: str, hash_text: str) -> bool:
-    current_user_hash_text = password_hash.hash(plain_text)
 
     # Check if both correct
-    if current_user_hash_text != hash_text:
+    if not password_hasher.verify(plain_text, hash_text):
         return False
 
     return True

@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from app.core.hash import password_hash
 
 
+# API: User Registration
 class UserRegistration(BaseModel):
     first_name: str = Field(..., description="First name of the User")
     last_name: str = Field(..., description="Last Name of the User ")
@@ -14,7 +15,6 @@ class UserRegistration(BaseModel):
     def hash_password(v):
         return password_hash(v)
 
-
 class UserRegistrationResponse(BaseModel):
     id: str
     first_name: str
@@ -25,11 +25,10 @@ class UserRegistrationResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
+# API: User OTP verification
 class UserOtpVerify(BaseModel):
     otp: int
     user_id: str
-
 
 class UserOtpVerifyResponse(BaseModel):
     email: str
@@ -38,3 +37,35 @@ class UserOtpVerifyResponse(BaseModel):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+# API: User Login
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserInfo(BaseModel):
+    id: str
+    first_name: str
+    last_name: str
+    email: str
+    is_active: bool
+    is_verified: bool
+    is_deleted: bool
+    role_id: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserLoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    user: UserInfo
+
+# API: Password Reset 
+class ResetPassword(BaseModel):
+    old_password: str
+    new_password: str
+
+# API: Forgot Password
+class UserForgotRequest(BaseModel):
+    email: EmailStr
+
