@@ -1,10 +1,12 @@
-from fastapi import status as http_status, HTTPException, Request, Depends
+from fastapi import Depends, HTTPException, Request
+from fastapi import status as http_status
 from sqlalchemy.orm import Session
-from app.db.session import get_db
-from app.core.message import ErrorMessage
+
 from app.core.jwt import verify_token
-from app.db.models.role import Role
+from app.core.message import ErrorMessage
+from app.db.session import get_db
 from app.repository.role_repository import RoleRepository
+
 
 # Function: Take Request as Input and Returns Payload after validating Access token
 def validate_token(request: Request):
@@ -12,11 +14,11 @@ def validate_token(request: Request):
     headers = request.headers
     berear_token = headers.get("authorization")
 
-    # Check bearer token is none or len(list) < 2 
+    # Check bearer token is none or len(list) < 2
     if berear_token is None or len(berear_token.split(" ")) < 2:
         raise HTTPException(
-            status_code = http_status.HTTP_401_UNAUTHORIZED,
-            detail = ErrorMessage.INVALID_TOKEN
+            status_code=http_status.HTTP_401_UNAUTHORIZED,
+            detail=ErrorMessage.INVALID_TOKEN,
         )
 
     # Extract Bearer Token
@@ -27,8 +29,10 @@ def validate_token(request: Request):
 
     return payload
 
+
 def current_user(request: Request, db: Session = Depends(get_db)):
     return validate_token(request)
+
 
 # Note: We need to take list of roles from the dependecy so handle that using class
 class RoleCheck:
@@ -46,8 +50,8 @@ class RoleCheck:
 
         if not role_id:
             raise HTTPException(
-                status_code = http_status.HTTP_401_UNAUTHORIZED,
-                detail = ErrorMessage.UNAUTHORIZED_ACCESS
+                status_code=http_status.HTTP_401_UNAUTHORIZED,
+                detail=ErrorMessage.UNAUTHORIZED_ACCESS,
             )
 
         # Check In Role Table for given role_id and fetch role_name
@@ -60,13 +64,9 @@ class RoleCheck:
         # Check if current role is in Allowed Roles for API
         if role_name not in self.allowed_roles:
             raise HTTPException(
-                status_code = http_status.HTTP_401_UNAUTHORIZED,
-                detail = ErrorMessage.UNAUTHORIZED_ACCESS
+                status_code=http_status.HTTP_401_UNAUTHORIZED,
+                detail=ErrorMessage.UNAUTHORIZED_ACCESS,
             )
 
         # If All good then return current user dict
         return payload
-
-
-
-

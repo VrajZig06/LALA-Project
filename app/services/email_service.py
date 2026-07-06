@@ -1,10 +1,11 @@
+import asyncio
+from datetime import datetime
+
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
+
 from app.core.config import get_settings
 from app.core.logger import get_logger
-from datetime import datetime
-from sib_api_v3_sdk.rest import ApiException
-import sib_api_v3_sdk
-import asyncio
-
 
 # Logger Setup
 logger = get_logger(__name__)
@@ -88,7 +89,7 @@ class EmailService:
 
                 # Don't retry on certain error codes
                 if e.status in [400, 401, 403]:  # Bad request, Unauthorized, Forbidden
-                    logger.error(f"Non-retryable error, giving up")
+                    logger.error("Non-retryable error, giving up")
                     return False
 
                 if attempt < max_retries:
@@ -147,7 +148,9 @@ class EmailService:
         """
         return await self.send_email(to_email, subject, html_content)
 
-    async def send_otp_email(self, to_email: str, otp: int, name: str = None, expiry_minutes: int = 5) -> bool:
+    async def send_otp_email(
+        self, to_email: str, otp: int, name: str = None, expiry_minutes: int = 5
+    ) -> bool:
         """
         Send OTP verification email to the user with a premium design
         """
@@ -155,7 +158,7 @@ class EmailService:
         app_name = settings.APP_NAME or "LALA"
         display_name = name or self._strip_email_name(to_email)
         year = datetime.now().year
-        
+
         html_content = f"""<!DOCTYPE html>
 <html>
 <head>

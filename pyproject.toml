@@ -1,0 +1,41 @@
+[tool.ruff]
+# Target Python version
+target-version = "py313"
+
+# Maximum line length
+line-length = 88
+
+# Exclude directories
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".vscode",
+    "venv",
+    "__pycache__",
+    "alembic",
+]
+
+[tool.ruff.lint]
+# Rules to enable
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear (common bugs)
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade (modernize syntax)
+    "RUF", # Ruff-specific rules
+]
+
+# Rules to ignore
+ignore = [
+    "E501", # line-too-long (handled by formatter)
+]
+
+[tool.ruff.format]
+# Code formatting preferences
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

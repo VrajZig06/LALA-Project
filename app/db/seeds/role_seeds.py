@@ -1,9 +1,11 @@
 import logging
-from app.db.session import Session
+
 from app.db.models.role import Role
+from app.db.session import Session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def seed_roles():
     db = Session()
@@ -25,6 +27,7 @@ def seed_roles():
         raise e
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed_roles()

@@ -1,9 +1,9 @@
 from enum import Enum
 
 
-# Login Type 
+# Login Type
 class LoginType(str, Enum):
-  EMAIL = "email"
-  GOOGLE = "google"
-  GITHUB = "github"
-  FACEBOOK = "facebook"
+    EMAIL = "email"
+    GOOGLE = "google"
+    GITHUB = "github"
+    FACEBOOK = "facebook"

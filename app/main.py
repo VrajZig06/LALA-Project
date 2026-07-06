@@ -1,15 +1,16 @@
-from fastapi import FastAPI, HTTPException
-from app.core.exception import ServerException
-from app.core.config import get_settings
-from app.core.logger import get_logger
 from contextlib import asynccontextmanager
-from app.core.response import success_response
-from app.core.exception_handler import http_exception_handler, server_exception_handler
-from app.db import models
-from app.core.message import SuccessMessage
+
+from fastapi import FastAPI, HTTPException
+
 from app.api.routes import app_router
-from app.core.jwt import generate_token, verify_token
 from app.common.utils import generate_otp
+from app.core.config import get_settings
+from app.core.exception import ServerException
+from app.core.exception_handler import http_exception_handler, server_exception_handler
+from app.core.jwt import generate_token
+from app.core.logger import get_logger
+from app.core.message import SuccessMessage
+from app.core.response import success_response
 
 # GET Settings Object
 settings = get_settings()
@@ -45,5 +46,7 @@ app.include_router(app_router, prefix="/api/v1")
 @app.get("/health")
 async def health_check():
     print(f"generate_otp :: {generate_otp()}")
-    print(f"generate_token :: {generate_token({"user_id" : "123", "email": "user@gmail.com"}, expiry_time_in_min=1)}")
+    print(
+        f"generate_token :: {generate_token({'user_id': '123', 'email': 'user@gmail.com'}, expiry_time_in_min=1)}"
+    )
     return success_response(msg=SuccessMessage.SERVER_HEALTHY)
