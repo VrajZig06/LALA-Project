@@ -31,6 +31,7 @@ select = [
 # Rules to ignore
 ignore = [
     "E501", # line-too-long (handled by formatter)
+    "B008", # function call in argument defaults (standard for FastAPI Depends)
 ]
 
 [tool.ruff.format]

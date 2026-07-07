@@ -4,3 +4,6 @@ JWT_REFRESH_TOKEN_EXPIRY_TIME = 1440
 
 # Role Constants
 DEFAULT_ROLE_NAME = "employee"
+
+# Forgot Password Expiry Time
+FORGOT_PASSWORD_EXPIRY_TIME = 5

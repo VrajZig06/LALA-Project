@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     BREVO_SENDER_EMAIL: str
     BREVO_SENDER_NAME: str
 
+    # Google Auth
+    GOOGLE_CLIENT_ID: str
+
+    # FE Links
+    FRONTEND_BASE_URL: str
+
+
     model_config = {
         "env_file": f".env.{ServerEnv().ENV}",
         "extra": "ignore",

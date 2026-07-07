@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LALA - Sign Up with Google</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            --btn-hover-glow: 0 0 20px rgba(139, 92, 246, 0.4);
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Decorative background glow elements */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0,0,0,0) 70%);
+            top: -100px;
+            right: -100px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(0,0,0,0) 70%);
+            bottom: -150px;
+            left: -150px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 460px;
+            padding: 24px;
+            z-index: 10;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 30px rgba(59, 130, 246, 0.05);
+        }
+
+        .logo-container {
+            margin-bottom: 28px;
+            display: inline-block;
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.05em;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 32px;
+        }
+
+        /* Input Group for Client ID config */
+        .config-group {
+            text-align: left;
+            margin-bottom: 24px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 16px;
+            border-radius: 16px;
+        }
+
+        .config-label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .config-input-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+
+        .config-input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .config-input:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .config-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 0 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .config-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .config-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .divider::before { margin-right: 16px; }
+        .divider::after { margin-left: 16px; }
+
+        /* Google Buttons Wrapper */
+        .auth-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Native Google login button wrapper */
+        .g-btn-wrapper {
+            min-height: 40px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* Simulation Button Styling */
+        .sim-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sim-button:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .sim-button:active {
+            transform: translateY(0);
+        }
+
+        .sim-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Result Panel */
+        .result-panel {
+            margin-top: 32px;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .result-panel.error {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .result-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-title.success { color: #10b981; }
+        .result-title.error { color: #ef4444; }
+
+        .result-body {
+            font-family: monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #cbd5e1;
+        }
+
+        .footer-text {
+            margin-top: 32px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .footer-text a {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-text a:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+            <div class="logo-container">
+                <span class="logo">LALA</span>
+            </div>
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Join or log in securely using your credentials.</p>
+
+            <!-- Config section for active testing -->
+            <div class="config-group">
+                <label class="config-label" for="clientIdInput">Google Client ID</label>
+                <div class="config-input-wrapper">
+                    <input type="text" id="clientIdInput" class="config-input" placeholder="Paste your Client ID here...">
+                    <button onclick="saveClientId()" class="config-btn">Apply</button>
+                </div>
+            </div>
+
+            <div class="auth-actions">
+                <!-- Native Google Login Button Container -->
+                <div id="googleBtnContainer" class="g-btn-wrapper"></div>
+            </div>
+
+            <!-- Result output panel -->
+            <div id="resultPanel" class="result-panel">
+                <div id="resultTitle" class="result-title"></div>
+                <div id="resultBody" class="result-body"></div>
+            </div>
+
+            <p class="footer-text">
+                Protected by Google. View our <a href="#">Terms</a> & <a href="#">Privacy</a>.
+            </p>
+        </div>
+    </div>
+
+    <!-- Google Identity Services client script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <script>
+        // Load Client ID from localStorage if available
+        let googleClientId = localStorage.getItem('google_client_id') || 'YOUR_GOOGLE_CLIENT_ID';
+        document.getElementById('clientIdInput').value = googleClientId === 'YOUR_GOOGLE_CLIENT_ID' ? '' : googleClientId;
+
+        // Initialize Google Sign-In when the script loads
+        window.onload = function () {
+            if (googleClientId && googleClientId !== 'YOUR_GOOGLE_CLIENT_ID') {
+                initGoogleSignIn();
+            } else {
+                showWarning("Configure your Google Client ID above to render the native Google button.");
+            }
+        };
+
+        function saveClientId() {
+            const inputVal = document.getElementById('clientIdInput').value.trim();
+            if (inputVal) {
+                localStorage.setItem('google_client_id', inputVal);
+                googleClientId = inputVal;
+                initGoogleSignIn();
+                hideResult();
+            } else {
+                localStorage.removeItem('google_client_id');
+                googleClientId = 'YOUR_GOOGLE_CLIENT_ID';
+                document.getElementById('googleBtnContainer').innerHTML = '';
+                showWarning("Client ID removed. Rendered native Google button disabled.");
+            }
+        }
+
+        function initGoogleSignIn() {
+            try {
+                google.accounts.id.initialize({
+                    client_id: googleClientId,
+                    callback: handleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById("googleBtnContainer"),
+                    { 
+                        theme: "dark", 
+                        size: "large",
+                        width: "396",
+                        type: "standard",
+                        shape: "pill",
+                        text: "signup_with"
+                    }
+                );
+            } catch (e) {
+                console.error("Failed to load Google Sign-In SDK: ", e);
+                showError("Error initializing Google SDK. Please check your console.");
+            }
+        }
+
+        function handleCredentialResponse(response) {
+            // Send the ID token credential to backend
+            const token = response.credential;
+            sendAuthRequest(token);
+        }
+
+        function sendAuthRequest(token) {
+            const url = '/api/v1/users/google-auth';
+            showLoading();
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: token })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, body: data })))
+            .then(res => {
+                if (res.status >= 200 && res.status < 300) {
+                    showSuccess("Authentication Successful!", res.body);
+                } else {
+                    showError(`Error (${res.status}): ${res.body.msg || 'Authentication Failed'}`, res.body);
+                }
+            })
+            .catch(err => {
+                showError("Network/Server connection failed.", err);
+            });
+        }
+
+
+
+        // Helpers to show results in UI
+        const resultPanel = document.getElementById('resultPanel');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultBody = document.getElementById('resultBody');
+
+        function showLoading() {
+            resultPanel.style.display = 'block';
+            resultPanel.className = 'result-panel';
+            resultTitle.className = 'result-title';
+            resultTitle.innerHTML = '⚡ Processing authentication...';
+            resultBody.innerHTML = '';
+        }
+
+        function showSuccess(message, data) {
+            resultPanel.style.display = 'block';
+            resultPanel.className = 'result-panel';
+            resultTitle.className = 'result-title success';
+            resultTitle.innerHTML = '✓ ' + message;
+            resultBody.innerHTML = JSON.stringify(data, null, 2);
+        }
+
+        function showError(message, data) {
+            resultPanel.style.display = 'block';
+            resultPanel.className = 'result-panel error';
+            resultTitle.className = 'result-title error';
+            resultTitle.innerHTML = '✗ ' + message;
+            resultBody.innerHTML = data ? JSON.stringify(data, null, 2) : '';
+        }
+
+        function showWarning(message) {
+            resultPanel.style.display = 'block';
+            resultPanel.className = 'result-panel';
+            resultTitle.className = 'result-title';
+            resultTitle.style.color = '#fbbf24';
+            resultTitle.innerHTML = '⚠ Notice';
+            resultBody.innerHTML = message;
+        }
+
+        function hideResult() {
+            resultPanel.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
