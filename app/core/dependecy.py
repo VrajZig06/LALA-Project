@@ -6,10 +6,12 @@ from app.core.jwt import verify_token
 from app.core.message import ErrorMessage
 from app.db.session import get_db
 from app.repository.role_repository import RoleRepository
-
+from app.repository.user_session_repository import UserSessionRepository
+from app.db.models.user_session import UserSession
 
 # Function: Take Request as Input and Returns Payload after validating Access token
 def validate_token(request: Request):
+    db = next(get_db())
     # Get Authorization Token
     headers = request.headers
     berear_token = headers.get("authorization")
@@ -26,6 +28,15 @@ def validate_token(request: Request):
 
     # Now Instend of Finding from the DB decode this token and check expiry
     payload = verify_token(token)
+
+    # Now check in UserSession Table for given access token 
+    user_session = db.query(UserSession).filter(UserSession.is_active == True, UserSession.is_deleted == False).first()
+
+    if not user_session or user_session.session != token:
+        raise HTTPException(
+            status_code = http_status.HTTP_401_UNAUTHORIZED,
+            detail = ErrorMessage.INVALID_TOKEN
+        )
 
     return payload
 

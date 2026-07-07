@@ -32,3 +32,6 @@ class User(IdMixins, TimeMixins):
         "UserInformation", back_populates="user"
     )  # One to One
     role: Mapped["Role"] = relationship("Role", back_populates="user")  # One to One
+    forgot_password_liks: Mapped["UserForgotPasswordTrack"] = relationship(
+        "UserForgotPasswordTrack", back_populates = "user"
+    )

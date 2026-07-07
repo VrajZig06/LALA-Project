@@ -221,6 +221,87 @@ class EmailService:
 """
         return await self.send_email(to_email, subject, html_content)
 
+    async def send_reset_password_email(
+        self, to_email: str, reset_link: str, name: str = None, expiry_minutes: int = 5
+    ) -> bool:
+        """
+        Send a password reset link email to the user with a premium design
+        """
+        subject = "Reset Your Password"
+        app_name = settings.APP_NAME or "LALA"
+        display_name = name or self._strip_email_name(to_email)
+        year = datetime.now().year
+
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Your Password</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; width: 100% !important;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 520px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+          <!-- Top Gradient Bar -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 32px 40px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">{app_name}</h1>
+            </td>
+          </tr>
+          <!-- Content Body -->
+          <tr>
+            <td style="padding: 40px 40px 30px 40px;">
+              <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 20px; font-weight: 700; text-align: center;">Reset Your Password</h2>
+              <p style="margin: 0 0 24px 0; color: #475569; font-size: 15px; line-height: 24px;">
+                Hi {display_name},<br><br>
+                We received a request to reset the password for your <strong>{app_name}</strong> account. Click the button below to set a new password.
+              </p>
+              
+              <!-- CTA Button -->
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                <tr>
+                  <td align="center">
+                    <a href="{reset_link}" 
+                       style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1);">
+                      Reset Password
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="margin: 0 0 24px 0; color: #64748b; font-size: 13px; line-height: 20px; text-align: center;">
+                This link is valid for <strong>{expiry_minutes} minutes</strong>.<br>
+                If you did not request a password reset, you can safely ignore this email.
+              </p>
+              
+              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+              
+              <p style="margin: 0 0 8px 0; color: #94a3b8; font-size: 12px; line-height: 18px; text-align: center;">
+                If you're having trouble clicking the button, copy and paste the link below into your web browser:
+              </p>
+              <p style="margin: 0; color: #6366f1; font-size: 12px; line-height: 18px; text-align: center; word-break: break-all;">
+                <a href="{reset_link}" style="color: #6366f1; text-decoration: underline;">{reset_link}</a>
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #f1f5f9;">
+              <p style="margin: 0 0 8px 0; color: #64748b; font-size: 12px; font-weight: 600;">{self.sender_name}</p>
+              <p style="margin: 0; color: #94a3b8; font-size: 11px;">© {year} {self.sender_name}. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+        return await self.send_email(to_email, subject, html_content)
+
     def _strip_email_name(self, email: str) -> str:
         """Helper to extract a name from email if name is not provided"""
         try:

@@ -91,7 +91,7 @@ class BaseRepository(Generic[ModelType]):
 
         self.db.add(db_obj)
         self.db.commit()
-        self.refresh(db_obj)
+        self.db.refresh(db_obj)
         return db_obj
 
     def update(self, db_obj: ModelType, obj_in: dict[str, Any]) -> ModelType:
