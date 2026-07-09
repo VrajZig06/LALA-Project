@@ -38,3 +38,17 @@ async def send_email_verification_email(
         otp = generate_otp()
 
     await email_service.send_otp_email(to_email=email, otp=otp, name=full_name)
+
+
+def generate_room_code() -> str:
+    """
+    Return a formatted random room code like 'abc-defg-hij'
+    """
+    import random
+    import string
+    chars = string.ascii_lowercase
+    part1 = "".join(random.choices(chars, k=3))
+    part2 = "".join(random.choices(chars, k=4))
+    part3 = "".join(random.choices(chars, k=3))
+    return f"{part1}-{part2}-{part3}"
+
