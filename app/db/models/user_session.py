@@ -10,6 +10,7 @@ class UserSession(IdMixins, TimeMixins):
     # Table fields
     session: Mapped[str] = mapped_column(String, nullable = True, default = None)
     refresh_token: Mapped[str] = mapped_column(String, nullable = True, default = None)
+    fcm_token: Mapped[str] = mapped_column(String, nullable = True, default = None)
 
     # Foreign Keys
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))

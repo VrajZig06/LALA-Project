@@ -14,6 +14,10 @@ from app.core.logger import get_logger
 from app.core.message import ErrorMessage, SuccessMessage
 from app.core.response import success_response
 from fastapi.middleware.cors import CORSMiddleware
+from firebase_admin import credentials, messaging
+import firebase_admin
+from app.schema.notification import NotificationBlock
+from app.services.notification_service import NotificationService
 
 # GET Settings Object
 settings = get_settings()
@@ -59,6 +63,10 @@ app.add_middleware(
     max_age=600,                    # Cache preflight response for 10 minutes
 )
 
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate("firebase-credentials.json")
+firebase_admin.initialize_app(cred)
+
 # Mount Static Files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -78,6 +86,22 @@ async def health_check():
         f"generate_token :: {generate_token({'user_id': '123', 'email': 'user@gmail.com'}, expiry_time_in_min=1)}"
     )
     return success_response(msg=SuccessMessage.SERVER_HEALTHY)
+
+# Send Notification
+@app.post("/send-notification")
+async def send_notification(data: NotificationBlock):
+    try:
+        notification_service = NotificationService()
+        notification = NotificationBlock(
+            title=data.title,
+            body = data.body,
+            token= data.token
+        )
+        return notification_service.send_notification(notification)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise ServerException(e)
 
 
 # Serve Google Signup/Login Page

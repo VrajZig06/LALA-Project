@@ -18,6 +18,7 @@ class SuccessMessage:
     TOKEN_REFRESHED_SUCCESSFULLY = "Access Token Refreshsed Successfully"
     ROOM_CREATED_SUCCESSFULLY = "Call Room Created Successfully"
     ROOM_FETCHED_SUCCESSFULLY = "Call Room Details Fetched Successfully"
+    NOTIFICATION_SENT_SUCCESSFULLY = "Notification Sent Successfully!"
 
 
 class ErrorMessage:
@@ -178,3 +179,4 @@ class LoggerMessage:
     VALIDATE_FORGOT_PASSWORD_EXPIRED = "validate_forgot_password: Link validation failed: active tracks are expired for user_id='{user_id}'"
     VALIDATE_FORGOT_PASSWORD_SUCCESS = "validate_forgot_password: Password recovery and update successful for user_id='{user_id}'"
     VALIDATE_FORGOT_PASSWORD_ERROR = "validate_forgot_password: Unexpected error during forgot password validation: {error}"
+    NOTIFICATION_SERVICE_INIT = "Notification Service Init..."
