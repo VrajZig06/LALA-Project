@@ -30,7 +30,7 @@ def validate_token(request: Request):
     payload = verify_token(token)
 
     # Now check in UserSession Table for given access token 
-    user_session = db.query(UserSession).filter(UserSession.is_active == True, UserSession.is_deleted == False).first()
+    user_session = db.query(UserSession).filter(UserSession.session == token, UserSession.is_active == True, UserSession.is_deleted == False).first()
 
     if not user_session or user_session.session != token:
         raise HTTPException(

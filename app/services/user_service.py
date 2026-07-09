@@ -211,6 +211,7 @@ class UserService:
             # Extract user email and password
             email = payload.email
             password = payload.password
+            fcm_token = payload.fcm_token or None
 
             logger.info(LoggerMessage.USER_LOGIN_START.format(email=email))
 
@@ -265,7 +266,8 @@ class UserService:
             self.user_session_repo.create({
                 "session": access_token,
                 "refresh_token": refresh_token,
-                'user_id': user.id
+                'user_id': user.id,
+                "fcm_token": fcm_token
             })
 
             # Prepared UserInfo Data

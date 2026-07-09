@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-
+from typing import Optional
 from app.core.hash import password_hash
 
 
@@ -42,6 +42,7 @@ class UserOtpVerifyResponse(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    fcm_token: Optional[str] = None
 
 class UserInfo(BaseModel):
     id: str
