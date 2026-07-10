@@ -114,7 +114,10 @@ class PaymentService:
                 # TODO: Mark order status as "FAILED" in your database
                 
             # 5. Always return a 200 OK response to Razorpay quickly
-            return {"status": "ok"}
+            return success_response(
+                status_code= http_status.HTTP_200_OK,
+                msg= SuccessMessage.PAYMENT_WEBHOOK_RECIEVED_SUCCESSFULLY
+            )
 
         except HTTPException:
             raise   

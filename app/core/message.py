@@ -21,6 +21,7 @@ class SuccessMessage:
     NOTIFICATION_SENT_SUCCESSFULLY = "Notification Sent Successfully!"
     ORDER_CREATED_SUCCESSFULLY = "Order Created Successfully!"
     PAYMENT_VERIFY_SUCCESSFULLY = "Payment successful and verified securely."
+    PAYMENT_WEBHOOK_RECIEVED_SUCCESSFULLY = "Payment Webhook Recieved Successfully!"
 
 
 class ErrorMessage:
