@@ -2,12 +2,16 @@ from datetime import timedelta
 from time import time
 from celery import Celery
 from celery.schedules import crontab
-import time
+from app.core.config import get_settings
 from typing import Optional
+import time
+
+# Take Settigs object
+setting = get_settings()
 
 celery = Celery(
     "tasks",
-    broker="redis://localhost:6379",
+    broker= setting.REDIS_SERVER_URL,
 )
 
 # Schedule Jobs
