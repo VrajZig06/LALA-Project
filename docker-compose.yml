@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.2-alpine
+    container_name: lala-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - lala-network
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: lala-redisinsight
+    restart: always
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+    networks:
+      - lala-network
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  lala-network:
+    driver: bridge
