@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # FE Links
     FRONTEND_BASE_URL: str
 
+    # REDIS SERVER URL
+    REDIS_SERVER_URL: str
+
 
     model_config = {
         "env_file": f".env.{ServerEnv().ENV}",

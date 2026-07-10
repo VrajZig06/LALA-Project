@@ -18,6 +18,7 @@ from firebase_admin import credentials, messaging
 import firebase_admin
 from app.schema.notification import NotificationBlock
 from app.services.notification_service import NotificationService
+from app.celery.celery_worker import hello
 
 # GET Settings Object
 settings = get_settings()
@@ -81,10 +82,8 @@ app.include_router(app_router, prefix="/api/v1")
 # Health API
 @app.get("/health")
 async def health_check():
-    print(f"generate_otp :: {generate_otp()}")
-    print(
-        f"generate_token :: {generate_token({'user_id': '123', 'email': 'user@gmail.com'}, expiry_time_in_min=1)}"
-    )
+    result = hello.delay()
+    print(f"result :: {result}")
     return success_response(msg=SuccessMessage.SERVER_HEALTHY)
 
 # Send Notification
@@ -107,7 +106,7 @@ async def send_notification(data: NotificationBlock):
 # Serve Google Signup/Login Page
 @app.get("/", response_class=HTMLResponse)
 async def serve_login_page():
-    try:
+    try:                                                            
         with open("static/google_signup.html") as f:
             html_content = f.read()
         return HTMLResponse(content=html_content)
