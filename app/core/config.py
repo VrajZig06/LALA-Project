@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     # REDIS SERVER URL
     REDIS_SERVER_URL: str
 
+    # RAZORPAY INTEGRATION
+    RAZORPAY_API_KEY: str
+    RAZORPAY_API_SECRET: str
+    RAZORPAY_WEBHOOK_SECRET: str
+
 
     model_config = {
         "env_file": f".env.{ServerEnv().ENV}",
