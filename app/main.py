@@ -19,6 +19,7 @@ import firebase_admin
 from app.schema.notification import NotificationBlock
 from app.services.notification_service import NotificationService
 from app.celery.celery_worker import hello
+from app.services.payment_service import PaymentService
 
 # GET Settings Object
 settings = get_settings()
@@ -31,7 +32,8 @@ origins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
     "http://127.0.0.1:8000",
-    "http://localhost:8000"
+    "http://localhost:8000",
+    "https://womankind-raffle-duration.ngrok-free.dev"
 ]
 
 # Set Up Logger
@@ -82,8 +84,7 @@ app.include_router(app_router, prefix="/api/v1")
 # Health API
 @app.get("/health")
 async def health_check():
-    result = hello.delay()
-    print(f"result :: {result}")
+    payment_service = PaymentService()
     return success_response(msg=SuccessMessage.SERVER_HEALTHY)
 
 # Send Notification

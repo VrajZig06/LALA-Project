@@ -19,6 +19,8 @@ class SuccessMessage:
     ROOM_CREATED_SUCCESSFULLY = "Call Room Created Successfully"
     ROOM_FETCHED_SUCCESSFULLY = "Call Room Details Fetched Successfully"
     NOTIFICATION_SENT_SUCCESSFULLY = "Notification Sent Successfully!"
+    ORDER_CREATED_SUCCESSFULLY = "Order Created Successfully!"
+    PAYMENT_VERIFY_SUCCESSFULLY = "Payment successful and verified securely."
 
 
 class ErrorMessage:
@@ -47,7 +49,10 @@ class ErrorMessage:
     FILE_NOT_FOUND = "File not Found!"
     ROOM_NOT_FOUND = "Call Room Not Found!"
     ROOM_INACTIVE = "Call Room is inactive"
-
+    PAYMENT_GATEWAY_INITIALIZATION_ERROR = "We are experiencing difficulties connecting to our payment partner. Please try again later."
+    PAYMENT_VERIFICATION_FAILED = "Payment verification failed. Invalid signature."
+    WEBHOOK_SIGNATURE_MISSING = "Webhook signature missing"
+    WEBHOOK_SIGNATURE_INVALID = "Invalid webhook signature verification failed"
 
 class LoggerMessage:
     ExpiredSignatureError_Logtext = "user_id :: {user_id} & error :: {e}"
