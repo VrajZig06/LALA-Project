@@ -35,3 +35,7 @@ class User(IdMixins, TimeMixins):
     forgot_password_liks: Mapped["UserForgotPasswordTrack"] = relationship(
         "UserForgotPasswordTrack", back_populates = "user"
     )
+
+    # Relationships
+    order_item = relationship("OrderItem", back_populates = 'user', uselist = True)
+    order = relationship("Order", back_populates = "user", uselist = True)

@@ -7,3 +7,11 @@ class LoginType(str, Enum):
     GOOGLE = "google"
     GITHUB = "github"
     FACEBOOK = "facebook"
+
+# Razorpay Transaction Types
+class RazorpayPaymentStatus(str, Enum):
+    PENDING = "pending"
+    AUTHORIZED = "authorized"
+    CAPTURED = "captured"
+    FAILED = "failed"
+    REFUNDED = "refunded"
