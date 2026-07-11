@@ -1,7 +1,6 @@
 """
 Base repository class with common CRUD operations.
 """
-
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
@@ -112,3 +111,21 @@ class BaseRepository(Generic[ModelType]):
         self.db.delete(obj)
         self.db.flush()
         return True
+    
+    def create_all(self, list_obj_in: list[dict[str, Any]] | list[BaseModel]) -> ModelType:
+        db_data = []
+        for obj_in in list_obj_in:
+            if isinstance(obj_in, BaseModel):
+                data = obj_in.model_dump()
+            else:
+                data = obj_in
+
+            db_obj = self.model(**data)
+            db_data.append(db_obj)
+
+        # Now add All to DB
+        self.db.add_all(db_data)
+        self.db.commit()
+
+        return True
+

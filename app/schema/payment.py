@@ -1,7 +1,12 @@
 from pydantic import BaseModel
 
+class OrderItems(BaseModel):
+    name: str
+    quantity: int
+    price: float
+
 class CreateOrderRequest(BaseModel):
-    amount: int
+    order_items: list[OrderItems] 
     currency: str = "INR"
 
 class VerifyPaymentRequest(BaseModel):

@@ -4,18 +4,35 @@ from app.core.exception import ServerException
 from app.core.config import get_settings
 from app.schema.payment import CreateOrderRequest, VerifyPaymentRequest
 from app.core.response import success_response
+from sqlalchemy.orm import Session
+from app.repository.order_repository import OrderRepository
+from app.repository.order_item_repository import OrderItemRepository
+from app.repository.payment_transaction_repository import PaymentTransactionRepository
+from app.core.enums import RazorpayPaymentStatus
 import razorpay
 import json
 
 settings = get_settings()
 
 class PaymentService:
-    def __init__(self):
+    def __init__(self, db: Session):
+
+        # Local Variable
+        self.db = db
+
+        # Razorpay Secrets 
         self.RAZORPAY_KEY_ID = settings.RAZORPAY_API_KEY
         self.RAZORPAY_KEY_SECRET = settings.RAZORPAY_API_SECRET
 
         # Create Razorpay Client
         self.rz_client = self.create_razorpay_client(self.RAZORPAY_KEY_ID, self.RAZORPAY_KEY_SECRET)
+
+        # Initalize Repository here
+        self.order_repo = OrderRepository(self.db)
+        self.order_item_repo = OrderItemRepository(self.db)
+        self.payment_transaction_repo = PaymentTransactionRepository(self.db)
+
+
 
     # Method: Create Razorpay Client 
     def create_razorpay_client(self, RAZORPAY_KEY_ID: str, RAZORPAY_KEY_SECRET: str):
@@ -33,7 +50,7 @@ class PaymentService:
             raise ServerException(e)
 
     # Function: Create Razorpay Order 
-    def create_razorpay_order(self, order_data: CreateOrderRequest):
+    def create_razorpay_order(self, data: CreateOrderRequest, current_user):
         try:
             # Check Razorpay Client Initialization
             if self.rz_client is None:
@@ -42,15 +59,53 @@ class PaymentService:
                     detail = ErrorMessage.PAYMENT_GATEWAY_INITIALIZATION_ERROR
                 )
 
+            order_data = data.model_dump()
+        
+            # Calculate Total Amount
+            amount = 0
+            for item in order_data.get("order_items"):
+                # Calculate Total
+                amount +=(item.get("price", 0) * item.get("quantity"))
+
             # Create Order Payload
             order_payload = {
-                "amount": order_data.amount,
-                "currency": order_data.currency,
+                "amount": amount,
+                "currency": order_data.get("currency"),
                 "payment_capture": 1  # 1 means automatic capture
             }
 
             # Create order in Razorpay ecosystem
             razorpay_order = self.rz_client.order.create(data=order_payload)
+
+            # Check Order is Created 
+            if razorpay_order.get("id", None) is None:
+                raise HTTPException(
+                    status_code = http_status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail = ErrorMessage.ORDER_CREATION_FAILED
+                )
+            
+            # Add Order Detail in Database
+            db_order_data = self.order_repo.create({
+                "razorpay_order_id" : razorpay_order["id"],
+                "user_id": current_user.get("id", None),
+                "amount": amount
+            })
+
+            # Add order Items 
+            order_data_id = db_order_data.id
+            order_items_data = []
+            for item in order_data.get("order_items"):
+                order_item_data = {
+                    "order_id": order_data_id,
+                    "user_id": current_user.get('id', None),
+                    "item_price": item["price"], 
+                    "item_quantity": item["quantity"]
+                }
+
+                order_items_data.append(order_item_data)
+            
+            # Now we need to add This order item data to DB
+            self.order_item_repo.create_all(order_items_data)
 
             # Return the order details to your frontend
             return success_response(
@@ -102,17 +157,50 @@ class PaymentService:
                 payment_entity = payload["payload"]["payment"]["entity"]
                 order_id = payment_entity["order_id"]
                 payment_id = payment_entity["id"]
-                amount = payment_entity["amount"]
+                status = payment_entity["status"]
                 
-                print(f"💰 Success! Payment of {amount} paise captured for Order {order_id}")
-                # TODO: Mark order as "PAID" in your database and fulfill the purchase
+                # Check First is there any entry related to this payment_id
+                is_payment_entry = self.payment_transaction_repo.get_by_field("payment_id", payment_id)
+
+                # Find Order with Razorpay Order Id
+                order = self.order_repo.get_by_field("razorpay_order_id",order_id)
+
+                if not is_payment_entry:
+                    transaction_record = {
+                        "payment_id": payment_id,
+                        "order_id": order.id,
+                        "status": status
+                    }
+
+                    # Add payment transaction record
+                    self.payment_transaction_repo.create(transaction_record)
+
                 
             elif event == "payment.failed":
                 payment_entity = payload["payload"]["payment"]["entity"]
+                payment_id = payment_entity["id"]
                 order_id = payment_entity["order_id"]
-                print(f"❌ Payment failed for Order {order_id}")
-                # TODO: Mark order status as "FAILED" in your database
+                status = payment_entity["status"]
+
+                # Check First is there any entry related to this payment_id
+                is_payment_entry = self.payment_transaction_repo.get_by_field("payment_id", payment_id)
+
+                if not is_payment_entry:
+
+                    # Find Order with Razorpay Order Id
+                    order = self.order_repo.get_by_field("razorpay_order_id",order_id)
+
+
+                    transaction_record = {
+                        "payment_id": payment_id,
+                        "order_id": order.id,
+                        "status": status
+                    }
+
+                    # Add payment transaction record
+                    self.payment_transaction_repo.create(transaction_record)
                 
+            print(f"Already Verifeid")
             # 5. Always return a 200 OK response to Razorpay quickly
             return success_response(
                 status_code= http_status.HTTP_200_OK,
@@ -136,6 +224,20 @@ class PaymentService:
 
             # This will raise an error automatically if it's invalid/forged
             self.rz_client.utility.verify_payment_signature(param_dict)
+
+            # Find Order Id from DB using Razorpay Order Id
+            razorpay_order_id = payment_data.razorpay_order_id
+            order = self.order_repo.get_by_field("razorpay_order_id", razorpay_order_id)
+
+            # Create Payment Transaction Record 
+            transaction_record = {
+                "payment_id": payment_data.razorpay_payment_id,
+                "order_id": order.id,
+                "status": RazorpayPaymentStatus.CAPTURED.value
+            }
+
+            # Add To DB
+            self.payment_transaction_repo.create(transaction_record)
 
             return success_response(
                 status_code= http_status.HTTP_200_OK,

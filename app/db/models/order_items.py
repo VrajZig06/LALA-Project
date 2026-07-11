@@ -18,3 +18,4 @@ class OrderItem(IdMixins, TimeMixins):
     # Relationship
     order = relationship("Order", back_populates = 'order_item')
     user = relationship("User", back_populates = "order_item")  
+    

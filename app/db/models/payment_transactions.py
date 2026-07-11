@@ -11,11 +11,9 @@ class PaymentTransaction(IdMixins, TimeMixins):
     __tablename__ = "payment_transactions"
 
     payment_id: Mapped[str] = mapped_column(String, nullable = False)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
     order_id: Mapped[str] = mapped_column(ForeignKey("orders.id"))
     status: Mapped[str] = mapped_column(SEnum(RazorpayPaymentStatus), nullable=True, default=RazorpayPaymentStatus.PENDING.value)
 
 
     # Relationships
-    user = relationship("User", back_populates = "order")    
-    order_item = relationship("OrderItem", back_populates = "order")
+    order = relationship("Order", back_populates = "payment_transaction")
