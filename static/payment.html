@@ -63,6 +63,152 @@
         payButton.onclick = async function (e) {
             e.preventDefault();
 
+            payButton.disabled = true;
+            payButton.innerText = "Processing...";
+
+            // 1. Match the data format from your curl command
+            const orderPayload = {
+                "order_items": [
+                    { "name": "Apple", "price": 20.0, "quantity": 2 },
+                    { "name": "Banana", "price": 10.0, "quantity": 6 }
+                ]
+            };
+
+            // Calculate the total amount locally for Razorpay (20*2 + 10*6 = 100 INR)
+            // Razorpay wants amount in Paise: 100 INR * 100 = 10000 Paise
+            const totalAmountInPaise = 100 * 100;
+
+            try {
+                // 2. Call your backend API using the correct layout and endpoint
+                const response = await fetch('http://localhost:8000/api/v1/orders/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI3ZDkzNTFiLTM2N2ItNGNiNS04MGI1LWY5ZTk3ZTkzZGE2ZCIsInJvbGVfaWQiOiJkMTEyYzY0ZC1hODBiLTRhNjEtODg1OC00NTc4MzQ3YTRjZmEiLCJlbWFpbCI6InZyYWpAeW9wbWFpbC5jb20iLCJleHAiOjE3ODM3ODczMzZ9.mf-gk-tkFeOYogkEV2JxcYUU9PaVt-oIgzP4T0EnOyw'
+                    },
+                    body: JSON.stringify(orderPayload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create order from backend server');
+                }
+
+                const orderData = await response.json();
+
+                // 💡 Extracts the generated ID from your SQLAlchemy model response
+                const dynamicOrderId = orderData.data.order_id;
+
+                // 3. Configuration Options with dynamic values
+                const options = {
+                    "key": "rzp_test_TBiRPJQ1hDQWhK",
+                    "amount": totalAmountInPaise,
+                    "currency": "INR",
+                    "name": "Acme Corp Test",
+                    "description": "Test Transaction",
+                    "image": "https://example.com/your_logo.png",
+                    "order_id": dynamicOrderId,
+
+                    "handler": function (rzpResponse) {
+                        alert("Payment Successful!");
+                        console.log("rzpResponse :: ", rzpResponse)
+                        console.log("Payment ID: ", rzpResponse.razorpay_payment_id);
+                        console.log("Order ID: ", rzpResponse.razorpay_order_id);
+                        console.log("Signature: ", rzpResponse.razorpay_signature);
+                        // TODO: Send rzpResponse to your backend verifying endpoint to finalize order status!
+                    },
+                    "prefill": {
+                        "name": "John Doe",
+                        "email": "johndoe@example.com",
+                        "contact": "9999999999"
+                    },
+                    "theme": {
+                        "color": "#3399cc"
+                    }
+                };
+
+                const rzp1 = new Razorpay(options);
+                rzp1.open();
+
+            } catch (error) {
+                console.error("Error initiating payment:", error);
+                alert("Something went wrong while initializing the payment. Check console.");
+            } finally {
+                payButton.disabled = false;
+                payButton.innerText = "Pay Now";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
+
+<!-- <!DOCTYPE html>
+ 
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Test Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f5f7;
+        }
+
+        .payment-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+        }
+
+        button {
+            background-color: #3399cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:disabled {
+            background-color: #a0c4d6;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #2277a3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="payment-card">
+        <h2>Complete Your Payment</h2>
+        <p>Click the button below to launch the Razorpay sandbox payment gateway.</p>
+        <button id="rzp-button1">Pay Now</button>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+        const payButton = document.getElementById('rzp-button1');
+
+        payButton.onclick = async function (e) {
+            e.preventDefault();
+
             // Disable button to prevent double clicks while fetching order
             payButton.disabled = true;
             payButton.innerText = "Processing...";
@@ -135,109 +281,6 @@
                 payButton.disabled = false;
                 payButton.innerText = "Pay Now";
             }
-        }
-    </script>
-
-</body>
-
-</html>
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Razorpay Test Checkout</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f5f7;
-        }
-
-        .payment-card {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 400px;
-        }
-
-        button {
-            background-color: #3399cc;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background-color: #2277a3;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="payment-card">
-        <h2>Complete Your Payment</h2>
-        <p>Click the button below to launch the Razorpay sandbox payment gateway.</p>
-        <button id="rzp-button1">Pay Now</button>
-    </div>
-
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-    <script>
-        // 2. Configuration Options for the Checkout Modal
-        const options = {
-            "key": "rzp_test_TBiRPJQ1hDQWhK", // ⚠️ REPLACE THIS with your actual Test Key ID
-            "amount": "1000",             // Amount in paise (e.g., 50000 paise = ₹500)
-            "currency": "INR",
-            "name": "Acme Corp Test",
-            "description": "Test Transaction",
-            "image": "https://example.com/your_logo.png", // Optional company logo URL
-            "order_id": "order_TBlD8yzzIk62gJ", // ⚠️ REPLACE THIS with your generated Order ID
-
-            // 3. Callback Handler: What happens when the user clicks 'Success' in test mode
-            "handler": function (response) {
-                alert("Payment Successful!");
-                console.log("Tokens received from Razorpay:");
-                console.log("Payment ID: ", response.razorpay_payment_id);
-                console.log("Order ID: ", response.razorpay_order_id);
-                console.log("Signature: ", response.razorpay_signature);
-
-                // NEXT STEP: Send these 3 tokens back to your FastAPI '/api/verify-payment' endpoint 
-                // using fetch() or axios to complete verification on your backend server.
-            },
-            "prefill": {
-                "name": "John Doe",
-                "email": "johndoe@example.com",
-                "contact": "9999999999"
-            },
-            "notes": {
-                "address": "Razorpay Corporate Office"
-            },
-            "theme": {
-                "color": "#3399cc" // Customize checkout popup theme color
-            }
-        };
-
-        // 4. Initialize Razorpay Checkout instance
-        const rzp1 = new Razorpay(options);
-
-        // 5. Open the checkout window when the user clicks the button
-        document.getElementById('rzp-button1').onclick = function (e) {
-            rzp1.open();
-            e.preventDefault();
         }
     </script>
 

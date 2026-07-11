@@ -14,16 +14,16 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 @router.post("/create")
-def create_order(payload: CreateOrderRequest, db: Session = Depends(get_db)):
-    payment_service = PaymentService()
-    return payment_service.create_razorpay_order(payload)
+def create_order(payload: CreateOrderRequest, current_user = Depends(current_user), db: Session = Depends(get_db)):
+    payment_service = PaymentService(db)
+    return payment_service.create_razorpay_order(payload, current_user)
 
 @router.post("/verify")
 def verify_order(payload: VerifyPaymentRequest, user = Depends(current_user), db: Session = Depends(get_db)):
-    payment_service = PaymentService()
+    payment_service = PaymentService(db)
     return payment_service.verify_razorpay_signature(payload)
 
 @router.post("/razerpay/webhook")
-async def handle_razerpay_webhook(request: Request, x_razorpay_signature: str = Header(None)):
-    payment_service = PaymentService()
+async def handle_razerpay_webhook(request: Request, x_razorpay_signature: str = Header(None), db: Session = Depends(get_db)):
+    payment_service = PaymentService(db)
     return await payment_service.handle_razorpay_webhook(request, x_razorpay_signature)

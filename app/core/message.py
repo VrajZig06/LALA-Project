@@ -54,6 +54,7 @@ class ErrorMessage:
     PAYMENT_VERIFICATION_FAILED = "Payment verification failed. Invalid signature."
     WEBHOOK_SIGNATURE_MISSING = "Webhook signature missing"
     WEBHOOK_SIGNATURE_INVALID = "Invalid webhook signature verification failed"
+    ORDER_CREATION_FAILED = "Order Creation Failed, Try Again Later!"
 
 class LoggerMessage:
     ExpiredSignatureError_Logtext = "user_id :: {user_id} & error :: {e}"
