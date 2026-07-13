@@ -88,7 +88,6 @@ app.include_router(app_router, prefix="/api/v1")
 # Health API
 @app.get("/health")
 async def health_check():
-    payment_service = PaymentService()
     return success_response(msg=SuccessMessage.SERVER_HEALTHY)
 
 # Send Notification
