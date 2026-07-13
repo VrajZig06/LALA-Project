@@ -15,3 +15,16 @@ class RazorpayPaymentStatus(str, Enum):
     CAPTURED = "captured"
     FAILED = "failed"
     REFUNDED = "refunded"
+
+# Razorpay Period Cycle
+class RazorpayPeriodCycles(str, Enum):
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
+
+# Razorpay Currency 
+class RazorpayCurrency(str, Enum):
+    USD = "USD"
+    AED = "AED"
+    INR = "INR"
