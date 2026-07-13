@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     RAZORPAY_API_SECRET: str
     RAZORPAY_WEBHOOK_SECRET: str
 
+    # FIREBASE CONFIGURATION
+    FIREBASE_CONFIGURATION: str
 
     model_config = {
         "env_file": f".env.{ServerEnv().ENV}",

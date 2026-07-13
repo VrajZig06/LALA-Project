@@ -20,6 +20,7 @@ from app.schema.notification import NotificationBlock
 from app.services.notification_service import NotificationService
 from app.celery.celery_worker import hello
 from app.services.payment_service import PaymentService
+import json
 
 # GET Settings Object
 settings = get_settings()
@@ -67,7 +68,10 @@ app.add_middleware(
 )
 
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate("firebase-credentials.json")
+FIREBASE_CONFIGURATION = settings.FIREBASE_CONFIGURATION
+
+firebase_creds_dict = json.loads(FIREBASE_CONFIGURATION)
+cred = credentials.Certificate(firebase_creds_dict)
 firebase_admin.initialize_app(cred)
 
 # Mount Static Files
