@@ -1,6 +1,6 @@
 from sqlalchemy import Boolean, Integer, Float
 from sqlalchemy import ForeignKey, String, Enum as SEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.enums import RazorpayPeriodCycles, RazorpayCurrency
 
 from app.db.models.base import IdMixins, TimeMixins
@@ -14,11 +14,18 @@ class SubscriptionPlan(IdMixins, TimeMixins):
     description: Mapped[str] = mapped_column(String, nullable = True, default = None)
     price: Mapped[float] = mapped_column(Float, nullable = False)
     razorpay_plan_id: Mapped[str] = mapped_column(String, nullable = True, default = None)
-    is_recuring: Mapped[bool] = mapped_column(Boolean, nullable = True, default = False)
+    razorpay_item_id: Mapped[str] = mapped_column(String, nullable = True, default = None)
     period: Mapped[str] = mapped_column(SEnum(RazorpayPeriodCycles), nullable = False)
     interval: Mapped[int] = mapped_column(Integer, nullable = False)
     currency: Mapped[str] = mapped_column(
         SEnum(RazorpayCurrency), nullable = True, default = RazorpayCurrency.INR.value
     )
+    duration: Mapped[int] = mapped_column(Integer, nullable = True, default = 1)
+
+    # Relationships
+    subscriptions: Mapped[list["Subscription"]] = relationship(
+        "Subscription", back_populates="plan"
+    )
+
 
 

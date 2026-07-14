@@ -48,9 +48,9 @@ def current_user(request: Request, db: Session = Depends(get_db)):
 # Note: We need to take list of roles from the dependecy so handle that using class
 class RoleCheck:
     # Take Parameter from the Dependecy
-    def __init__(self, roles: list[str], db: Session = Depends(get_db)):
+    def __init__(self, roles: list[str]):
         self.allowed_roles = roles
-        self.db = db
+        self.db = next(get_db())
 
     # Then Handle role checking logic for current user
     def __call__(self, request: Request):

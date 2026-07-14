@@ -22,6 +22,8 @@ class SuccessMessage:
     ORDER_CREATED_SUCCESSFULLY = "Order Created Successfully!"
     PAYMENT_VERIFY_SUCCESSFULLY = "Payment successful and verified securely."
     PAYMENT_WEBHOOK_RECIEVED_SUCCESSFULLY = "Payment Webhook Recieved Successfully!"
+    SUBSCRIPTION_PLAN_CREATED_SUCCESSFULLY = "Subscription Plan Created Successfully"
+    SUBSCRIPTION_PLAN_FETCHED_SUCCESSFULLY = "Subscription Plans Fetched Successfully"
 
 
 class ErrorMessage:
@@ -55,6 +57,7 @@ class ErrorMessage:
     WEBHOOK_SIGNATURE_MISSING = "Webhook signature missing"
     WEBHOOK_SIGNATURE_INVALID = "Invalid webhook signature verification failed"
     ORDER_CREATION_FAILED = "Order Creation Failed, Try Again Later!"
+    SUBSCRIPTION_PLAN_ALREADY_EXIST = "Subscription Plan with {name} already exists."
 
 class LoggerMessage:
     ExpiredSignatureError_Logtext = "user_id :: {user_id} & error :: {e}"
