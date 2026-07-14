@@ -24,6 +24,8 @@ class SuccessMessage:
     PAYMENT_WEBHOOK_RECIEVED_SUCCESSFULLY = "Payment Webhook Recieved Successfully!"
     SUBSCRIPTION_PLAN_CREATED_SUCCESSFULLY = "Subscription Plan Created Successfully"
     SUBSCRIPTION_PLAN_FETCHED_SUCCESSFULLY = "Subscription Plans Fetched Successfully"
+    SUBSCRIPTION_CREATED_SUCCESSFULLY = "Subscritpion Created Successfully"
+    SUBSCRIPTION_CANCELLED_SUCCESSFULLY = "Subscription Cancelled Successfully"
 
 
 class ErrorMessage:
@@ -58,6 +60,11 @@ class ErrorMessage:
     WEBHOOK_SIGNATURE_INVALID = "Invalid webhook signature verification failed"
     ORDER_CREATION_FAILED = "Order Creation Failed, Try Again Later!"
     SUBSCRIPTION_PLAN_ALREADY_EXIST = "Subscription Plan with {name} already exists."
+    SUBSCRIPTION_PLAN_NOT_FOUND = "Subscription Plan not Exists"
+    RAZORPAY_BAD_REQUEST = "Razorpay Bad Request: {e}"
+    SUBSCRIPTION_ALREADY_EXIST = "Subscription Already Exists"
+    SUBSCRIPTION_NOT_CANCELLED = "Subscription not Cancelled"
+    SUBSCRIPTION_NOT_EXIST = "Subscription not Found"
 
 class LoggerMessage:
     ExpiredSignatureError_Logtext = "user_id :: {user_id} & error :: {e}"

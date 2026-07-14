@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Authentication & Subscription</title>
+    <!-- Include Razorpay Checkout Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        :root {
+            --primary: #3399cc;
+            --primary-hover: #2277a3;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Forms & Cards UI */
+        .auth-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2,
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        /* Pricing Grid */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: capitalize;
+        }
+
+        .price {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .price span {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .description {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+            flex-grow: 1;
+        }
+
+        /* Buttons & Alerts */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .msg {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .error-text {
+            color: var(--error);
+        }
+
+        .success-text {
+            color: var(--success);
+        }
+
+        .info-text {
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- SECTION 1: LOGIN PAGE -->
+        <div id="login-section" class="auth-card">
+            <h2>Account Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" value="vraj@yopmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" value="Vraj@1234" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <div id="login-msg" class="msg"></div>
+        </div>
+
+        <!-- SECTION 2: SUBSCRIPTION PLANS -->
+        <div id="subscription-section" class="hidden" style="width: 100%;">
+            <h1>Select Your Subscription Plan</h1>
+            <p style="text-align: center; color: var(--text-muted);">Choose a plan below to transition to secure
+                checkout</p>
+
+            <div class="pricing-grid" id="plans-container">
+                <!-- Dynamically injected plans go here -->
+            </div>
+            <div id="checkout-msg" class="msg"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // ⚠️ CHANGE THIS TO YOUR RAZORPAY TEST KEY ID
+        const RAZORPAY_KEY_ID = 'rzp_test_TBiRPJQ1hDQWhK';
+        const API_BASE_URL = 'http://localhost:8000/api/v1';
+
+        // Helper to grab token safely for authorization headers
+        function getAuthHeaders() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return null;
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        // 🛡️ Middleware: Inspects API answers for token expiration / auth failures
+        async function handleApiResponse(response) {
+            const result = await response.json();
+
+            // Intercept standard HTTP 401 OR custom backend status flags
+            if (response.status === 401 || result.status === 401 || result.msg === "Token Expired") {
+                logoutAndRedirect();
+                throw new Error("Session expired. User redirected to login screen.");
+            }
+
+            return result;
+        }
+
+        // Safely wipes session variables and rolls layout state back to login form
+        function logoutAndRedirect() {
+            localStorage.removeItem('access_token');
+
+            document.getElementById('subscription-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+
+            const loginMsg = document.getElementById('login-msg');
+            loginMsg.className = "msg error-text";
+            loginMsg.innerText = "Your session has expired. Please log in again.";
+        }
+
+        // Auto-check session on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('access_token')) {
+                showPlansSection();
+            }
+        });
+
+        // 1. Handle User Login Submission
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const msgDiv = document.getElementById('login-msg');
+
+            msgDiv.className = "msg info-text";
+            msgDiv.innerText = "Authenticating...";
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/user-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 200 && result.data && result.data.access_token) {
+                    localStorage.setItem('access_token', result.data.access_token);
+                    msgDiv.className = "msg success-text";
+                    msgDiv.innerText = "Login Successful! Loading options...";
+
+                    setTimeout(showPlansSection, 1000);
+                } else {
+                    msgDiv.className = "msg error-text";
+                    msgDiv.innerText = result.msg || "Invalid credentials. Please try again.";
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                msgDiv.className = "msg error-text";
+                msgDiv.innerText = "Failed to connect to the login server.";
+            }
+        });
+
+        function showPlansSection() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('subscription-section').classList.remove('hidden');
+            fetchPlans();
+        }
+
+        // 2. Fetch and Render Dynamic Subscription Plans
+        async function fetchPlans() {
+            const container = document.getElementById('plans-container');
+            const headers = getAuthHeaders();
+
+            if (!headers) {
+                logoutAndRedirect();
+                return;
+            }
+
+            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Fetching latest plans...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/subscription/all`, { headers });
+
+                // Route through our validation interceptor
+                const result = await handleApiResponse(response);
+
+                container.innerHTML = '';
+
+                if (result.status === 200 && result.data && Array.isArray(result.data.data)) {
+                    const plansArray = result.data.data;
+
+                    if (plansArray.length === 0) {
+                        container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">No active plans available right now.</p>';
+                        return;
+                    }
+
+                    plansArray.forEach(plan => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+
+                        const intervalText = plan.interval > 1 ? `every ${plan.interval} ${plan.period}s` : plan.period;
+
+                        card.innerHTML = `
+                            <div class="plan-name">${plan.name}</div>
+                            <div class="price">₹${plan.price}<span> / ${intervalText}</span></div>
+                            <p class="description">${plan.description || 'Unlock access to your subscription package.'}</p>
+                            <button class="btn" onclick="startSubscription('${plan.id}')">Select Plan</button>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = `<p style="grid-column: 1/-1; color: var(--error); text-align: center;">${result.msg || "Failed to render catalog structure."}</p>`;
+                }
+            } catch (error) {
+                console.error("Fetch plans flow interrupted:", error);
+            }
+        }
+
+        // 3. Create active subscription with Backend server
+        async function startSubscription(planId) {
+            const checkoutMsg = document.getElementById('checkout-msg');
+            checkoutMsg.className = "msg info-text";
+            checkoutMsg.innerText = "Generating subscription frame... Please wait.";
+
+            const headers = getAuthHeaders();
+            if (!headers) {
+                logoutAndRedirect();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/subscription/create-subscription`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ plan_id: planId })
+                });
+
+                // Route through our validation interceptor
+                const result = await handleApiResponse(response);
+
+                // 🔍 SMART CHECK: Extract subscription ID dynamically depending on structure
+                let subscriptionId = null;
+
+                if (result.status === 200 && result.data) {
+                    if (typeof result.data === 'string') {
+                        // Handle raw string inside result.data
+                        subscriptionId = result.data;
+                    } else if (result.data.razorpay_subscription_id) {
+                        // Handle nested key inside result.data
+                        subscriptionId = result.data.razorpay_subscription_id;
+                    } else if (result.data.id) {
+                        // Fallback: Razorpay object's 'id' directly
+                        subscriptionId = result.data.id;
+                    }
+                }
+
+                // Launch modal if subscription ID extraction succeeded
+                if (subscriptionId) {
+                    checkoutMsg.innerText = "";
+                    console.log("Launching checkout modal with subscription ID:", subscriptionId);
+                    openRazorpayCheckout(subscriptionId);
+                } else {
+                    checkoutMsg.className = "msg error-text";
+                    checkoutMsg.innerText = result.msg || "Could not extract subscription ID from backend.";
+                    console.error("Unmatched Backend JSON structure:", result);
+                }
+            } catch (error) {
+                console.error("Subscription creation flow interrupted:", error);
+            }
+        }
+
+        // 4. Mount and Launch Razorpay Checkout Modal
+        function openRazorpayCheckout(subscriptionId) {
+            const options = {
+                "key": RAZORPAY_KEY_ID,
+                "subscription_id": subscriptionId,
+                "name": "Your Platform Name",
+                "description": "App Access Activation",
+                "handler": function (response) {
+                    alert("Subscription authorized successfully!");
+                    console.log("Success Verification Data:", response);
+
+                    // Option to send verifying request payload back to backend here:
+                    /*
+                    fetch(`${API_BASE_URL}/subscription/verify-payment`, {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(response)
+                    }).then(() => alert("Verified!"));
+                    */
+                },
+                "prefill": {
+                    "email": "vraj@yopmail.com"
+                },
+                "theme": {
+                    "color": "#3399cc"
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+        }
+    </script>
+</body>
+
+</html>

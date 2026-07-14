@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from app.repository.order_repository import OrderRepository
 from app.repository.order_item_repository import OrderItemRepository
 from app.repository.payment_transaction_repository import PaymentTransactionRepository
+from app.repository.subscription_repository import SubscriptionRepository
+from app.repository.invoice_repository import InvoiceRepository
 from app.core.enums import RazorpayPaymentStatus
 from app.schema.subscription import SubscriptionPlanCreate
 import razorpay
@@ -32,6 +34,8 @@ class PaymentService:
         self.order_repo = OrderRepository(self.db)
         self.order_item_repo = OrderItemRepository(self.db)
         self.payment_transaction_repo = PaymentTransactionRepository(self.db)
+        self.subscription_repo = SubscriptionRepository(self.db)
+        self.invoice_repo = InvoiceRepository(self.db)
 
 
 
@@ -200,8 +204,61 @@ class PaymentService:
 
                     # Add payment transaction record
                     self.payment_transaction_repo.create(transaction_record)
+
+            elif event == "subscription.cancelled":
+                subscription_payload = payload["payload"]["subscription"]
+
+                # Key Feaure extracts from Webhook
+                status = subscription_payload["entity"]["status"]
+                notes = subscription_payload["entity"]["notes"]
+                user_id = notes["user_id"]
+
+                # Find Current Subscription
+                subscription_detail = self.subscription_repo.fetch_current_subscription(user_id)
+
+                # Now Extract And Deactivate that Subscription
+                subscription_id = subscription_detail.id
+                self.subscription_repo.cancelled_current_subscription(subscription_id)
+
+            elif event == "invoice.paid":
+                invoice_payload = payload["payload"]["invoice"]["entity"]
                 
-            print(f"Already Verifeid")
+                razorpay_invoice_id = invoice_payload.get("id")
+                razorpay_subscription_id = invoice_payload.get("subscription_id")
+                payment_id = invoice_payload.get("payment_id")
+                amount = invoice_payload.get("amount")
+                status = invoice_payload.get("status")
+                billing_start = invoice_payload.get("billing_start")
+                billing_end = invoice_payload.get("billing_end")
+                paid_at = invoice_payload.get("paid_at")
+
+                # Find the subscription in our database using razorpay_subscription_id
+                subscription = self.subscription_repo.get_by_field("razorpay_subscription_id", razorpay_subscription_id)
+                if not subscription:
+                    # Log error and skip since we cannot save without a valid subscription foreign key
+                    print(f"Error: Subscription not found for razorpay_subscription_id: {razorpay_subscription_id}")
+                else:
+                    # Check if invoice already exists
+                    existing_invoice = self.invoice_repo.get_by_field("razorpay_invoice_id", razorpay_invoice_id)
+                    
+                    invoice_data = {
+                        "subscription_id": subscription.id,
+                        "razorpay_invoice_id": razorpay_invoice_id,
+                        "payment_id": payment_id,
+                        "amount": amount,
+                        "status": status,
+                        "billing_start": billing_start,
+                        "billing_end": billing_end,
+                        "paid_at": paid_at
+                    }
+
+                    if existing_invoice:
+                        # Update existing invoice to maintain idempotency
+                        self.invoice_repo.update(existing_invoice, invoice_data)
+                    else:
+                        # Create new invoice record
+                        self.invoice_repo.create(invoice_data)
+
             # 5. Always return a 200 OK response to Razorpay quickly
             return success_response(
                 status_code= http_status.HTTP_200_OK,
@@ -284,14 +341,52 @@ class PaymentService:
         pass
 
     # Create Subscription
-    def create_subscription(self):
-        pass
+    def create_subscription(self, payload):
+        try:
+            # Create Razorpay Subscription
+            razorpay_response = self.rz_client.subscription.create(data = payload)
+            return razorpay_response
+
+        except razorpay.errors.BadRequestError as e:
+            # Catch validation errors from Razorpay (e.g., bad plan_id)
+            raise HTTPException(
+                status_code=400, 
+                detail=ErrorMessage.RAZORPAY_BAD_REQUEST.format(e = str(e)))
+        except Exception as e:
+            raise ServerException(e)
 
     # Update Subscription (Downgrade and Upgrade Subscription)
     def update_subscription(self):
         pass
 
     # Cancel Subscription
-    def cancel_subscription(self):
-        pass
+    def cancel_subscription(self, payload):
+        try:
+            subscription_id = payload.get("subscription_id", None)
+            at_cycle_end = payload.get("at_cycle_end", None)
+
+            options= {
+                "cancel_at_cycle_end": at_cycle_end
+            }
+
+            # subscription_id and at_cycle_end not then raise error
+            if subscription_id is None or at_cycle_end is None:
+                raise HTTPException(
+                    status_code = http_status.HTTP_400_BAD_REQUEST,
+                    detail = ErrorMessage.SUBSCRIPTION_NOT_CANCELLED
+                )
+
+            # Create Razorpay Subscription
+            razorpay_cancel_response = self.rz_client.subscription.cancel(subscription_id, options)
+            return razorpay_cancel_response
+
+        except razorpay.errors.BadRequestError as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=ErrorMessage.RAZORPAY_BAD_REQUEST.format(e = str(e)))
+        except HTTPException:
+            raise 
+        except Exception as e:
+            raise ServerException(e)
+
 
