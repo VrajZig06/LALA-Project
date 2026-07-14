@@ -9,6 +9,7 @@ from app.repository.order_repository import OrderRepository
 from app.repository.order_item_repository import OrderItemRepository
 from app.repository.payment_transaction_repository import PaymentTransactionRepository
 from app.core.enums import RazorpayPaymentStatus
+from app.schema.subscription import SubscriptionPlanCreate
 import razorpay
 import json
 
@@ -69,7 +70,7 @@ class PaymentService:
 
             # Create Order Payload
             order_payload = {
-                "amount": amount,
+                "amount": amount * 100,
                 "currency": order_data.get("currency"),
                 "payment_capture": 1  # 1 means automatic capture
             }
@@ -88,7 +89,7 @@ class PaymentService:
             db_order_data = self.order_repo.create({
                 "razorpay_order_id" : razorpay_order["id"],
                 "user_id": current_user.get("id", None),
-                "amount": amount
+                "amount": amount * 100
             })
 
             # Add order Items 
@@ -252,3 +253,45 @@ class PaymentService:
             raise   
         except Exception as e:
             raise ServerException(e)
+
+    # Create Razorpay Plan 
+    def create_razorpay_plan(self, plan_data: SubscriptionPlanCreate):
+        try:
+            # create razorpay plan payload
+            razorpay_plan_payload = {
+                "period": plan_data.period,
+                "interval": plan_data.interval,
+                "item": {
+                    "name":(plan_data.name).lower(),
+                    "amount": plan_data.price * 100, # Razorpay Price must be * 10
+                    "currency": plan_data.currency,
+                    "description": plan_data.description
+                }
+            }
+
+            # Create Plan in razorpay using razorpay client
+            razorpay_plan = self.rz_client.plan.create(data=razorpay_plan_payload)
+
+            return razorpay_plan
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise ServerException(e)
+
+    # Update Plan Details 
+    def update_razorpay_plan(self):
+        pass
+
+    # Create Subscription
+    def create_subscription(self):
+        pass
+
+    # Update Subscription (Downgrade and Upgrade Subscription)
+    def update_subscription(self):
+        pass
+
+    # Cancel Subscription
+    def cancel_subscription(self):
+        pass
+

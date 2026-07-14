@@ -39,4 +39,7 @@ class User(IdMixins, TimeMixins):
     # Relationships
     order_item = relationship("OrderItem", back_populates = 'user', uselist = True)
     order = relationship("Order", back_populates = "user", uselist = True)  
+    subscriptions: Mapped[list["Subscription"]] = relationship(
+        "Subscription", back_populates="user", cascade="all, delete-orphan"
+    )
  
